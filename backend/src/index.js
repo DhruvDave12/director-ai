@@ -63,21 +63,8 @@ jobsRouter.post("/quote", async (req, res) => {
 });
 
 // Execute job endpoint
-jobsRouter.post("/execute-job", async (req, res) => {
+jobsRouter.post("/execute", async (req, res) => {
   try {
-    const client = await getClient();
-
-    const tools = await client.listTools();
-    console.log("Tools:", JSON.stringify(tools, null, 2));
-
-    // ✅ Correct overload: (name: string, args?: Record<string, unknown>)
-    const res = await client.callTool({
-      name: "hello",
-      arguments: {
-        name: "Yo",
-      },
-    });
-    return res;
 
     // const { jobId, prompt, parameters } = req.body;
 

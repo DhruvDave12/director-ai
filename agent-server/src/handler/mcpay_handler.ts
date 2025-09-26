@@ -2,7 +2,7 @@ import z from "zod";
 import { createMcpPaidHandler } from "mcpay/handler";
 
 const inputSchema = {
-  input: z.string().url(),
+  input: z.string(),
   agentID: z.string(),
 };
 
@@ -21,7 +21,7 @@ export const mcpayHandler = createMcpPaidHandler(
       "Paid tool",
       "$0.001",
       inputSchema,
-      outputSchema,
+      {},
       async ({ agentID, input }) => ({
         content: [{ type: "text", text: `The weather in is sunny ${agentID}` }],
       })
@@ -30,7 +30,6 @@ export const mcpayHandler = createMcpPaidHandler(
       "free_tool",
       "Free to use",
       inputSchema,
-      outputSchema,
       async ({ agentID, input }) => ({
         content: [{ type: "text", text: `FREE ${agentID}` }],
       })
@@ -42,11 +41,7 @@ export const mcpayHandler = createMcpPaidHandler(
     },
     recipient: {
       evm: {
-        address: "0xc9343113c791cB5108112CFADa453Eef89a2E2A2",
-        isTestnet: true,
-      },
-      svm: {
-        address: "4VQeAqyPxR9pELndskj38AprNj1btSgtaCrUci8N4Mdg",
+        address: "0x3125c67180aBD9d59aCE1412c01B8d197306891d",
         isTestnet: true,
       },
     },

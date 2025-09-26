@@ -12,10 +12,12 @@ export const getClient = async () => {
     version: "1.0.0",
   });
 
-  const EVM_PRIVATE_KEY = process.env.EVM_PRIVATE_KEY as `0x${string}`;
+  const EVM_PRIVATE_KEY = process.env.EVM_PRIVATE_KEY;
+  if (!EVM_PRIVATE_KEY) {
+    throw new Error("EVM_PRIVATE_KEY is not set");
+  }
 
   const AGENT_SERVER_URL = process.env.AGENT_SERVER_URL;
-
   if (!AGENT_SERVER_URL) {
     throw new Error("AGENT_SERVER_URL is not set");
   }
