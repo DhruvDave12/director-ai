@@ -1,11 +1,10 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
+import { mcpayHandler } from "./handler/mcpay_handler.js";
 
 const app = new Hono();
 
-app.get("/", (c) => {
-  return c.text("Hello Hono!");
-});
+app.use("*", (c) => mcpayHandler(c.req.raw));
 
 serve(
   {
