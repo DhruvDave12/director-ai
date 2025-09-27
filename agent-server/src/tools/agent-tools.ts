@@ -1,6 +1,9 @@
 import z from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { Redis } from "@upstash/redis";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 interface Agent {
   id: string;
@@ -12,14 +15,17 @@ interface Agent {
 
 // Initialize Redis
 let redis: Redis;
-if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+if (
+  process.env.UPSTASH_REDIS_REST_URL &&
+  process.env.UPSTASH_REDIS_REST_TOKEN
+) {
   redis = Redis.fromEnv();
 } else if (process.env.REDIS_URL) {
   const redisUrl = process.env.REDIS_URL;
   const url = new URL(redisUrl);
   const token = url.password;
   const restUrl = `https://${url.hostname}/`;
-  
+
   redis = new Redis({
     url: restUrl,
     token: token,
@@ -73,7 +79,7 @@ export async function registerAgentTools(server: any) {
     server.paidTool(
       toolName,
       agent.description,
-      // TODO: This is not taking into account the input prompt length. Need to rework this.
+      // For now agent price is static
       createAgentPrice(agent.costPerOutputToken),
       agentInputSchema,
       {},

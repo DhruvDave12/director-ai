@@ -1,8 +1,5 @@
 require("dotenv").config();
-const { Client } = require("@modelcontextprotocol/sdk/client/index.js");
-const { StreamableHTTPClientTransport } = require("@modelcontextprotocol/sdk/client/streamableHttp.js");
-const { withX402Client } = require("mcpay/client");
-const { createSigner, isEvmSignerWallet } = require("x402/types");
+
 const { getClient } = require("../src/services/agent-payer.service");
 
 /**
