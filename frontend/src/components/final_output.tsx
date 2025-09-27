@@ -102,7 +102,7 @@ const FinalOutput = ({ output, txHash }: IFinalOutput) => {
               <p className="font-mono text-slate-600 text-sm">{formatTxHash(txHash)}</p>
             </div>
             <Link 
-              href={`https://etherscan.io/tx/${txHash}`}
+              href={`https://amoy.polygonscan.com/tx/${txHash}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105"
