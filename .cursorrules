@@ -192,73 +192,83 @@ Update `src/index.ts`:
 
 # Scratchpad
 
-## Current Task: Add Dynamic Blockchain Chain Configuration
+## Current Task: Landing Page Agent Cards Optimization ✅ COMPLETED
 
 ### Task Description
-Add BLOCKCHAIN_CHAIN environment variable to all three applications (backend, agent-server, frontend) to allow dynamic selection between base-sepolia and polygon-amoy chains:
-- Add environment variable to configure chain selection
-- Update agent-pay-handler.ts to use dynamic chain
-- Update agent-payer.service.js to use dynamic chain  
-- Update frontend config/index.tsx to use dynamic chain
-- Update frontend context/index.tsx to use dynamic chain
-- Ensure all chain references are consistent across the application stack
+Optimize the live agents section for better visual presentation and readability:
+- Expand container width to better align with content above
+- Increase card width to prevent text overflow
+- Format agent names by replacing underscores with spaces
+- Increase heading text sizes for better hierarchy
 
 ### Task Progress
-[X] Add BLOCKCHAIN_CHAIN environment variable to all three applications
-[X] Update agent-pay-handler.ts to use dynamic chain from environment
-[X] Update agent-payer.service.js to use dynamic chain from environment
-[X] Update frontend config/index.tsx to use dynamic chain from environment
-[X] Update frontend context/index.tsx to use dynamic chain from environment
-[X] Test that chain switching works across all components
+[X] Expand container width with responsive max-widths (max-w-4xl lg:max-w-5xl xl:max-w-6xl)
+[X] Optimize grid layout to show fewer columns per row for wider cards
+[X] Increase card padding from p-6 to p-7 for better text spacing
+[X] Format agent names using name.split('_').join(' ') for readability
+[X] Increase "Live Agents" heading from text-2xl to text-3xl
+[X] Increase "Live Use Cases" heading from text-sm to text-base
 
-### Implementation Details
+### Key Improvements Made
+- **Container Alignment**:
+  - Expanded container width: max-w-4xl lg:max-w-5xl xl:max-w-6xl
+  - Better alignment with content sections above
+  - More horizontal space for wider agent cards
+- **Grid Layout Optimization**:
+  - Changed from lg:grid-cols-3 to lg:grid-cols-2 xl:grid-cols-3
+  - Increased gap from gap-6 to gap-8 for better spacing
+  - Cards are now wider on large screens, preventing text overflow
+- **Typography Enhancements**:
+  - "Live Agents": text-2xl → text-3xl (more prominent)
+  - "Live Use Cases": text-sm → text-base (better readability)
+  - Agent names formatted: underscores replaced with spaces
+- **Card Spacing**:
+  - Increased padding from p-6 to p-7 across all cards
+  - Better text spacing and reduced overflow risk
+  - Applied to both skeleton and actual agent cards
 
-#### Current Hardcoded References
-- agent-server/src/handler/agent-pay-handler.ts: Line 25 - "base-sepolia" hardcoded in recipient
-- backend/src/services/agent-payer.service.js: Line 34 - "base-sepolia" hardcoded in createSigner call
-- frontend/src/config/index.tsx: Line 12 - networks = [baseSepolia] hardcoded
-- frontend/src/context/index.tsx: Lines 29-30 - baseSepolia hardcoded in networks and defaultNetwork
+### Results
+- ✅ Agent cards now properly aligned with content above
+- ✅ Eliminated text overflow issues with wider cards
+- ✅ Improved agent name readability (spaces instead of underscores)
+- ✅ Enhanced visual hierarchy with larger headings
+- ✅ Better overall spacing and professional appearance
+- ✅ Maintained responsive behavior across all screen sizes
 
-#### Chain Mapping Strategy
-Environment Variable: BLOCKCHAIN_CHAIN (values: "base-sepolia" | "polygon-amoy")
-- Default to "base-sepolia" if not set
-- Map to appropriate network configurations in each application
-- Frontend: Map to wagmi network objects (baseSepolia, polygonAmoy)
-- Backend/Agent: Use string values for API calls and configurations
+## Previous Task: Enhanced Live Agents Display ✅ COMPLETED
 
-#### Files to be Modified
-- backend/.env.example + backend/.env (create/update)
-- agent-server/.env.example + agent-server/.env (create/update)
-- frontend/.env.example + frontend/.env.local (create/update)
-- agent-server/src/handler/agent-pay-handler.ts
-- backend/src/services/agent-payer.service.js
-- frontend/src/config/index.tsx
-- frontend/src/context/index.tsx
+### Summary of Previous Enhancements
+- Successfully displays ALL available agents on landing page
+- Smooth, professional expand/collapse functionality
+- No overflow issues across mobile, tablet, and desktop
+- Enhanced UX with staggered animations and micro-interactions
+- Smart button text showing exact count of additional agents
+- Maintained consistent dark theme and brand aesthetics
+- Improved loading states with detailed skeleton animations
 
-### Current Status: ✅ COMPLETED SUCCESSFULLY
+## Previous Task: Landing Page Layout Separation ✅ COMPLETED
 
-**Summary:** Successfully implemented dynamic blockchain chain configuration across all three applications (backend, agent-server, frontend). The system now supports switching between base-sepolia and polygon-amoy networks using environment variables:
+### Summary of Previous Layout Changes
+- Text content now stays clearly on the left side
+- Lottie animation positioned far right with minimal text overlap
+- Better responsive behavior across screen sizes
+- Clean visual separation while maintaining design aesthetics
+- Proper overflow handling for extended animation positioning
 
-- **Backend**: Uses `BLOCKCHAIN_CHAIN` environment variable
-- **Agent-Server**: Uses `BLOCKCHAIN_CHAIN` environment variable  
-- **Frontend**: Uses `NEXT_PUBLIC_BLOCKCHAIN_CHAIN` environment variable
+## Previous Task: Landing Page UI/UX Improvements ✅ COMPLETED
+
+### Summary of Previous Improvements
+- Enhanced typography to modern landing page scales (text-8xl headings)
+- Improved button styling with larger padding and hover effects
+- Fixed Lottie animation whitespace issues with absolute positioning
+- Maintained excellent color scheme throughout
+
+## Previous Task: Dynamic Blockchain Chain Configuration ✅ COMPLETED
+
+**Summary:** Successfully implemented dynamic blockchain chain configuration across all three applications (backend, agent-server, frontend). The system now supports switching between base-sepolia and polygon-amoy networks using environment variables.
 
 **Key Features Implemented:**
 - Environment-based chain selection with validation
 - Dynamic network configuration for wallet connections
 - Proper error handling and fallback to default values
 - Consistent chain usage across payment processing, agent handling, and UI
-- Test verification confirming functionality works correctly
-
-**Files Modified:**
-- Created `.env.example` files in all three applications
-- Updated `agent-server/src/handler/agent-pay-handler.ts` with dynamic chain support
-- Updated `backend/src/services/agent-payer.service.js` with environment-based configuration
-- Updated `frontend/src/config/index.tsx` with dynamic network selection
-- Updated `frontend/src/context/index.tsx` to use dynamic network configuration
-
-**Next Steps for Users:**
-1. Copy `.env.example` files to `.env` in each application directory
-2. Set `BLOCKCHAIN_CHAIN="base-sepolia"` or `BLOCKCHAIN_CHAIN="polygon-amoy"` in backend and agent-server
-3. Set `NEXT_PUBLIC_BLOCKCHAIN_CHAIN="base-sepolia"` or `NEXT_PUBLIC_BLOCKCHAIN_CHAIN="polygon-amoy"` in frontend
-4. Restart all services after changing environment variables
