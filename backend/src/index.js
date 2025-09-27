@@ -5,6 +5,7 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { getClient } = require("./services/agent-payer.service");
+const agentOrderer = require("./services/agent-orderer.service");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -42,19 +43,21 @@ jobsRouter.post("/quote", async (req, res) => {
       });
     }
 
-    // Use Gemini API to generate response
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    console.log(
+      `📝 Generating quote for prompt: "${prompt.substring(0, 100)}${
+        prompt.length > 100 ? "..." : ""
+      }"`
+    );
+
+    // Use agent orderer service to get execution plan and costs
+    const quote = await agentOrderer.getAgentOrder(prompt);
 
     res.json({
-      quote: text,
-      prompt: prompt,
-      timestamp: new Date().toISOString(),
+      success: true,
+      ...quote,
     });
   } catch (error) {
-    console.error("Error generating quote:", error);
+    console.error("❌ Error generating quote:", error);
     res.status(500).json({
       error: "Failed to generate quote",
       message: error.message,
@@ -65,33 +68,30 @@ jobsRouter.post("/quote", async (req, res) => {
 // Execute job endpoint
 jobsRouter.post("/execute", async (req, res) => {
   try {
+    const { jobId, agentOrder } = req.body;
 
-    // const { jobId, prompt, parameters } = req.body;
+    if (!jobId || !agentOrder) {
+      return res.status(400).json({
+        error: "jobId and agentOrder are required",
+      });
+    }
 
-    // if (!jobId || !prompt) {
-    //   return res.status(400).json({
-    //     error: 'jobId and prompt are required'
-    //   });
-    // }
+    console.log(`🚀 Starting execution for job: ${jobId}`);
 
-    // // Use Gemini API to process the job
-    // const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
-    // const result = await model.generateContent(prompt);
-    // const response = await result.response;
-    // const text = response.text();
+    // TODO: Implement agent execution orchestration
+    // This will coordinate the execution of agents in the specified order
+    // Each agent will be called sequentially or in parallel based on dependencies
 
-    // res.json({
-    //   jobId: jobId,
-    //   result: text,
-    //   prompt: prompt,
-    //   parameters: parameters || {},
-    //   status: 'completed',
-    //   timestamp: new Date().toISOString()
-    // });
+    res.json({
+      jobId: jobId,
+      status: "",
+      timestamp: new Date().toISOString(),
+      message: "Execute endpoint cleared and ready for implementation",
+    });
   } catch (error) {
-    console.error("Error executing job:", error);
+    console.error("❌ Error in execute endpoint:", error);
     res.status(500).json({
-      error: "Failed to execute job",
+      error: "Execute endpoint error",
       message: error.message,
       jobId: req.body.jobId || null,
     });
