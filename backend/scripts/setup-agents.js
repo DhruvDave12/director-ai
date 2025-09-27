@@ -17,7 +17,7 @@ if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
   const url = new URL(redisUrl);
   const token = url.password;
   const restUrl = `https://${url.hostname}/`;
-  
+
   redis = new Redis({
     url: restUrl,
     token: token
@@ -56,13 +56,21 @@ const agents = [
     address: "0xBe53bed7B566b5c5a11361664cf9eaE5bB18Ed9a",
     costPerOutputToken: 0.000005, // $0.000005 per output token
   },
+  {
+    id: uuidv4(),
+    name: "reddit_sentiment_agent",
+    description:
+      "Specialises in analysing reddit sentiment and generating a gtm strategy",
+    address: "0x44D44273687060902990E6015D64632180529626",
+    costPerOutputToken: 0.000001, // $0.000001 per output token
+  },
 ];
 
 async function setupAgents() {
   try {
     console.log("🚀 Setting up agents in Redis...");
     console.log("📊 Redis URL:", process.env.REDIS_URL ? "✅ Configured" : "❌ Missing");
-    
+
     // Test Redis connection
     await redis.ping();
     console.log("🔗 Redis connection successful");
@@ -105,7 +113,7 @@ async function setupAgents() {
     console.log("📄 Sample agent data:", agentData);
 
     console.log("\n✅ Agent setup completed successfully!");
-    
+
   } catch (error) {
     console.error("❌ Error setting up agents:", error);
     console.error("💡 Make sure your REDIS_URL environment variable is set correctly");
@@ -119,7 +127,7 @@ async function listAgents() {
   try {
     console.log("📋 Listing all agents from Redis...");
     const keys = await redis.keys('AGENT_*');
-    
+
     if (keys.length === 0) {
       console.log("❌ No agents found. Run setup first.");
       return;
@@ -127,7 +135,7 @@ async function listAgents() {
 
     const agentPromises = keys.map(key => redis.get(key));
     const agentDataArray = await Promise.all(agentPromises);
-    
+
     const agents = agentDataArray
       .filter(data => data !== null)
       .map(data => typeof data === 'string' ? JSON.parse(data) : data);
@@ -140,7 +148,7 @@ async function listAgents() {
       console.log(`   Cost/Token: $${agent.costPerOutputToken}`);
       console.log(`   ID: ${agent.id}\n`);
     });
-    
+
   } catch (error) {
     console.error("❌ Error listing agents:", error);
   }

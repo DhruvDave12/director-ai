@@ -69,6 +69,36 @@ async function testSEOAdvisorChain(client) {
   }
 }
 
+async function testCreativeEmailMarketerAgent(client) {
+  console.log("🆓 Testing Email Agent Chain...");
+
+  try {
+    const scraperResponse = await client.callTool({
+      name: "test_free_tool",
+      arguments: {
+        prompt: "https://cred.club/",
+        agentID: "web_scraper_agent"
+      },
+    });
+    console.log("Web scraping agent completed task ✅")
+
+    const redditResponse = await client.callTool({
+      name: "test_free_tool",
+      arguments: {
+        prompt: scraperResponse.content[0].text,
+        agentID: "reddit_sentiment_agent"
+      },
+    })
+    console.log("Reddit sentiment agent completed task ✅")
+
+    console.log("✅ Free tool response:", JSON.stringify(redditResponse, null, 2));
+    return redditResponse;
+  } catch (error) {
+    console.error("❌ Error calling free tool:", error);
+    return null;
+  }
+}
+
 async function testFreeTool(client) {
   console.log("🆓 Testing free tool...");
 
@@ -131,7 +161,7 @@ async function runTests() {
 
     // Test free tool
     // await testFreeTool(client);
-    await testSEOAdvisorChain(client);
+    await testCreativeEmailMarketerAgent(client);
 
     // Test paid tool
     // await testPaidTool(client);

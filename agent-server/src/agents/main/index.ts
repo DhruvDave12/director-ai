@@ -9,3 +9,8 @@ export {
 } from "./seo-optimization-agent.js";
 
 export { GitHubAgent, createGitHubAgent } from "./github-agent.js";
+
+export {
+  RedditSentimentAgent,
+  createRedditSentimentAgent,
+} from "./reddit-sentiment-agent.js";
