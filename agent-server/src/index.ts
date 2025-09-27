@@ -4,6 +4,7 @@ import { agentPayHandler } from "./handler/agent-pay-handler.js";
 import { createWebScrapingAgent } from "./agents/main/web-scraping-agent.js";
 import { createSeoOptimizationAgent } from "./agents/main/seo-optimization-agent.js";
 import { createGitHubAgent } from "./agents/main/github-agent.js";
+import { createImageGenerationAgent } from "./agents/main/image-generation-agent.js";
 import { agentRegistry } from "./core/agent-factory.js";
 
 const app = new Hono();
@@ -30,6 +31,7 @@ function initializeAgents() {
     createSeoOptimizationAgent
   );
   agentRegistry.registerFactory("github_code_agent", createGitHubAgent);
+  agentRegistry.registerFactory("image_generation_agent", createImageGenerationAgent);
 
   console.log(
     "Agent factories registered:",
@@ -41,6 +43,7 @@ function initializeAgents() {
     agentRegistry.createAgent("web_scraper_agent");
     agentRegistry.createAgent("seo_optimization_agent");
     agentRegistry.createAgent("github_code_agent");
+    agentRegistry.createAgent("image_generation_agent");
     console.log("Default agent instances created");
   } catch (error) {
     console.error("Failed to create default agents:", error);
