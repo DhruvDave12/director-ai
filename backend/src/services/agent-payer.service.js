@@ -22,6 +22,21 @@ export const getClient = async () => {
     throw new Error("AGENT_SERVER_URL is not set");
   }
 
+  // Get blockchain chain from environment variable, default to "base-sepolia"
+  const blockchainChain = process.env.BLOCKCHAIN_CHAIN || "base-sepolia";
+
+  // Validate the chain value
+  const supportedChains = ["base-sepolia", "polygon-amoy"];
+  if (!supportedChains.includes(blockchainChain)) {
+    throw new Error(
+      `Invalid BLOCKCHAIN_CHAIN value: ${blockchainChain}. Must be one of: ${supportedChains.join(
+        ", "
+      )}`
+    );
+  }
+
+  console.log(`🔗 Using blockchain chain: ${blockchainChain}`);
+
   const transport = new StreamableHTTPClientTransport(
     new URL(AGENT_SERVER_URL),
     {
@@ -31,7 +46,7 @@ export const getClient = async () => {
 
   await client.connect(transport);
 
-  const evmSigner = await createSigner("polygon-amoy", EVM_PRIVATE_KEY);
+  const evmSigner = await createSigner(blockchainChain, EVM_PRIVATE_KEY);
 
   if (!isEvmSignerWallet(evmSigner)) {
     throw new Error("Failed to create EVM signer");
