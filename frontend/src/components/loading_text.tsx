@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 
 interface LoadingComponentProps {
-  loadingState: 'plan' | 'execute';
+  loadingState: 'plan' | 'execute' | 'transaction';
 }
 
 const LoadingComponent = ({ loadingState }: LoadingComponentProps) => {
@@ -23,6 +23,19 @@ const LoadingComponent = ({ loadingState }: LoadingComponentProps) => {
       color: 'text-purple-600',
       spinnerColor: 'border-purple-600',
       bgColor: 'purple-600'
+    },
+    transaction: {
+        messages: [
+            'Processing transaction...',
+            'Verifying details...',
+            'Confirming payment...',
+            'Finalizing transfer...',
+            'Almost done...'
+        ],
+        icon: '💸',
+        color: 'text-yellow-600',
+        spinnerColor: 'border-yellow-600',
+        bgColor: 'yellow-600'
     },
     execute: {
       messages: [

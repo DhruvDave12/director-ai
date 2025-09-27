@@ -1,3 +1,7 @@
+import { polygonAmoy, sepolia } from "viem/chains";
+
+
+
 export const userStories = [
     {
         "title": "Improve my website's SEO",
@@ -22,3 +26,13 @@ export const userStories = [
 ]
 
 
+export function getTokenAddress(chainId: number | undefined) {
+    switch (chainId) {
+        case polygonAmoy.id: // polygon amoy
+            return '0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582'; // MATIC
+        case sepolia.id: // sepolia
+            return '0xCaC524BcA292aaade2DF8A05cC58F0a65B1B3bB9'; // Sepolia ETH
+        default:
+            return `0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582`;
+    }
+}

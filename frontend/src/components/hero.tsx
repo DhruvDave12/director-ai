@@ -5,20 +5,19 @@ import { useAccount, useSendTransaction, useWaitForTransactionReceipt, WagmiConf
 import FinalOutput from "./final_output";
 import Plans from "./plan_render";
 import { IOutput, IPlan } from "../../types";
-import { userStories } from "@/constants";
+import { getTokenAddress, userStories } from "@/constants";
 import PromptInput from "./prompt_input";
 import { useRouter } from "next/navigation";
 import { erc20Abi, parseEther, parseUnits } from "viem";
 import { toast } from "sonner";
 import {
   writeContract,
-  readContract,
-  simulateContract,
   waitForTransactionReceipt,
 } from '@wagmi/core';
 import { config } from "@/config";
 import LoadingComponent from "./loading_text";
 import { Button } from "./ui/button";
+import { getChainId } from '@wagmi/core';
 
 const HeroSection = () => {
   const router = useRouter();
@@ -28,7 +27,8 @@ const HeroSection = () => {
   const productName = "DIRECTOR.AI";
   const [promptExecuted, setPromptExecuted] = useState(false);
   // State to manage the loading state
-  const [loadingState, setLoadingState] = useState<'plan' | 'execute' | null>(null);
+  const [loadingState, setLoadingState] = useState<'plan' | 'execute' | 'transaction' | null>(null);
+  const chainId = getChainId(config)
 
   const getErrorMessage = async (response: Response): Promise<string> => {
     try {
@@ -74,13 +74,13 @@ const HeroSection = () => {
       setLoadingState('plan');
       try {
         const response = await fetch(
-          "https://director-ai-production.up.railway.app/api/jobs/quote",
+          `${process.env.NEXT_PUBLIC_SERVER_URL}/api/jobs/quote`,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ prompt }),
+            body: JSON.stringify({ prompt, chainId }),
           }
         );
 
@@ -114,7 +114,7 @@ const HeroSection = () => {
   const onAccept = async () => {
     try {
       setIsLoading(true);
-      setLoadingState('execute');
+      setLoadingState('transaction');
       if (totalAmount === undefined || totalAmount === 0) {
         toast("Invalid total amount for transaction.");
         setIsLoading(false);
@@ -139,10 +139,11 @@ const HeroSection = () => {
         setLoadingState(null);
         return;
       }
-      const to = process.env.NEXT_PUBLIC_SERVER_ADDRESS as `0x${string}`;
 
+      const tokenAddress = getTokenAddress(chainId)
+      const to = process.env.NEXT_PUBLIC_SERVER_ADDRESS as `0x${string}`;
       const hash = await writeContract(config, {
-        address: `0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582` as `0x${string}`,
+        address: tokenAddress as `0x${string}`,
         abi: erc20Abi,
         functionName: 'transfer',
         args: [
@@ -156,8 +157,9 @@ const HeroSection = () => {
 
       setTxHash(hash);
 
+      setLoadingState('execute');
       const response = await fetch(
-        "https://director-ai-production.up.railway.app/api/jobs/execute",
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/jobs/execute`,
         {
           method: "POST",
           headers: {
@@ -167,6 +169,7 @@ const HeroSection = () => {
             jobId:planResponse.jobId,
             agentSequence:planResponse.agentSequence,
             transferHash: hash,
+            chainId
           }),
         }
       );
