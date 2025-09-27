@@ -5,7 +5,7 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { getClient } = require("./services/agent-payer.service");
-const agentOrderer = require("./services/agent-orderer.service");
+const agentOrderer = require("./services/agent-sequencer.service");
 
 const app = express();
 const PORT = process.env.PORT || 3000;

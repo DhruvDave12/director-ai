@@ -73,6 +73,7 @@ export async function registerAgentTools(server: any) {
     server.paidTool(
       toolName,
       agent.description,
+      // TODO: This is not taking into account the input prompt length. Need to rework this.
       createAgentPrice(agent.costPerOutputToken),
       agentInputSchema,
       {},

@@ -26,7 +26,7 @@ export const getClient = async () => {
 
   await client.connect(transport);
 
-  const evmSigner = await createSigner("base-sepolia", EVM_PRIVATE_KEY);
+  const evmSigner = await createSigner("polygon-amoy", EVM_PRIVATE_KEY);
 
   if (!isEvmSignerWallet(evmSigner)) {
     throw new Error("Failed to create EVM signer");

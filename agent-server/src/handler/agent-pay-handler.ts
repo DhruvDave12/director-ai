@@ -16,10 +16,7 @@ export const agentPayHandler = createMcpPaidHandler(
       url: "https://facilitator.x402.rs",
     },
     recipient: {
-      evm: {
-        address: "0x3125c67180aBD9d59aCE1412c01B8d197306891d",
-        isTestnet: true,
-      },
+      "polygon-amoy": "0x3125c67180aBD9d59aCE1412c01B8d197306891d",
     },
   },
   {

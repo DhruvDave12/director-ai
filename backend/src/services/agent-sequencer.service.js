@@ -3,7 +3,7 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { Redis } = require('@upstash/redis');
 const { v4: uuidv4 } = require('uuid');
 
-class AgentOrdererService {
+class AgentSequencerService {
   constructor() {
     this.genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
     
@@ -70,13 +70,13 @@ class AgentOrdererService {
   }
 
   /**
-   * Get agent order and cost estimation using Gemini
+   * Get agent sequence and cost estimation using Gemini
    * @param {string} prompt - The user prompt
-   * @returns {Promise<Object>} Object containing agent order, costs, and metadata
+   * @returns {Promise<Object>} Object containing agent sequence, costs, and metadata
    */
-  async getAgentOrder(prompt) {
+  async getAgentSequence(prompt) {
     try {
-      console.log("🤖 Getting agent order for prompt...");
+      console.log("🤖 Getting agent sequence for prompt...");
       
       // Fetch all available agents
       const agents = await this.getAllAgents();
@@ -145,36 +145,36 @@ IMPORTANT:
       }
 
       // Parse the Gemini response
-      let agentOrder;
+        let agentSequence;
       try {
-        agentOrder = JSON.parse(geminiOutput);
+        agentSequence = JSON.parse(geminiOutput);
       } catch (parseError) {
         console.error("❌ Failed to parse Gemini response:", geminiOutput);
         throw new Error(`Invalid JSON response from Gemini: ${parseError.message}`);
       }
 
-      if (!Array.isArray(agentOrder)) {
+      if (!Array.isArray(agentSequence)) {
         throw new Error("Gemini response is not an array");
       }
 
-      // Validate and enrich the agent order with cost calculations
-      const enrichedAgentOrder = agentOrder.map(order => {
-        const agent = agents.find(a => a.address.toLowerCase() === order.agentAddress.toLowerCase());
+      // Validate and enrich the agent sequence with cost calculations
+      const enrichedAgentSequence = agentSequence.map(sequenceItem => {
+        const agent = agents.find(a => a.address.toLowerCase() === sequenceItem.agentAddress.toLowerCase());
         
         if (!agent) {
-          console.warn(`⚠️ Agent with address ${order.agentAddress} not found`);
+          console.warn(`⚠️ Agent with address ${sequenceItem.agentAddress} not found`);
           return {
-            ...order,
+            ...sequenceItem,
             cost: 0,
             agentName: "Unknown Agent",
             valid: false
           };
         }
 
-        const cost = this.calculateAgentCost(order.agentPrompt, agent.costPerOutputToken);
+        const cost = this.calculateAgentCost(sequenceItem.agentPrompt, agent.costPerOutputToken);
         
         return {
-          ...order,
+          ...sequenceItem,
           cost: cost,
           agentName: agent.name,
           agentId: agent.id,
@@ -183,36 +183,36 @@ IMPORTANT:
       });
 
       // Filter out invalid agents
-      const validAgentOrder = enrichedAgentOrder.filter(order => order.valid);
-      const invalidCount = enrichedAgentOrder.length - validAgentOrder.length;
+      const validAgentSequence = enrichedAgentSequence.filter(agentSequenceItem => agentSequenceItem.valid);
+      const invalidCount = enrichedAgentSequence.length - validAgentSequence.length;
       
       if (invalidCount > 0) {
         console.warn(`⚠️ ${invalidCount} agents were invalid and filtered out`);
       }
 
       // Calculate total cost
-      const totalCost = validAgentOrder.reduce((sum, order) => sum + order.cost, 0);
+      const totalCost = validAgentSequence.reduce((sum, agentSequenceItem) => sum + agentSequenceItem.cost, 0);
 
       const jobId = uuidv4();
 
-      const jobProcessingOrder = {
+      const jobProcessingSequence = {
         jobId: jobId,
-        agentOrder: validAgentOrder,
+        agentSequence: validAgentSequence,
         totalCost: totalCost,
-        agentCount: validAgentOrder.length,
+        agentCount: validAgentSequence.length,
         originalPrompt: prompt,
         timestamp: new Date().toISOString()
       };
 
-      console.log(`✅ Generated quote with ${validAgentOrder.length} agents, total cost: $${totalCost.toFixed(6)}`);
+      console.log(`✅ Generated quote with ${validAgentSequence.length} agents, total cost: $${totalCost.toFixed(6)}`);
       
-      return jobProcessingOrder;
+      return jobProcessingSequence;
 
     } catch (error) {
-      console.error("❌ Error in getAgentOrder:", error);
-      throw new Error(`Failed to generate agent order: ${error.message}`);
+      console.error("❌ Error in getAgentSequence:", error);
+      throw new Error(`Failed to generate agent sequence: ${error.message}`);
     }
   }
 }
 
-module.exports = new AgentOrdererService();
+module.exports = new AgentSequencerService();
