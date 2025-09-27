@@ -5,7 +5,7 @@ import { polygonAmoy, sepolia } from "viem/chains";
 export const userStories = [
     {
         "title": "Improve my website's SEO",
-        "examplePrompt": "Optimize my website abc.xyz for SEO to increase organic traffic and improve search engine rankings, and create a github PR for the same on this repo: https://github.com/abc/xyz"
+        "examplePrompt": "Optimize my website https://akhileshmanda.github.io/Portfolio-SEO/ for SEO to increase organic traffic and improve search engine rankings, and create a github PR for the same on this repo: https://github.com/DhruvDave12/Portfolio-SEO"
     },
     {
         "title": "Generate a marketing report",
