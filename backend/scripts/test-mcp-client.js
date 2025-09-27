@@ -73,7 +73,7 @@ async function testImageGenerationAgent(client) {
 
   try {
     const response = await client.callTool({
-      name: "image_generation_agent",
+      name: "test_free_tool",
       arguments: {
         prompt: "Generate a greek demigod named dhruv dave",
         agentID: "image_generation_agent"

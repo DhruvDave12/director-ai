@@ -126,7 +126,8 @@ export class GitHubAgent extends BaseAgent {
     const match = context.match(githubUrlRegex);
 
     if (match && match[1]) {
-      return match[1]; // Returns "owner/repo" format
+      const cleanUrl = match[1].replace(/[^\w\/-]/g, "");
+      return cleanUrl; // Returns cleaned "owner/repo" format
     }
 
     // Try to find "owner/repo" pattern directly
