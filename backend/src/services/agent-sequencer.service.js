@@ -76,24 +76,27 @@ class AgentSequencerService {
   async getAgentSequence(prompt) {
     try {
       console.log("🤖 Getting agent sequence for prompt...");
-      
+
       // Fetch all available agents
       const agents = await this.getAllAgents();
-      
+
       if (agents.length === 0) {
         throw new Error("No agents available in the system");
       }
 
       // Build the agent list string for Gemini
       const agentListString = agents
-        .map((agent, index) => 
-          `${index + 1}. agentAddress = ${agent.address} - ${agent.description}`
+        .map(
+          (agent, index) =>
+            `${index + 1}. agentAddress = ${agent.address} - ${
+              agent.description
+            }`
         )
-        .join('\n');
+        .join("\n");
 
       // Construct the prompt for Gemini
       const geminiPrompt = `
-You are an intelligent agent orchestrator. Your task is to analyze a user request and select the most cost-effective combination of specialized agents to complete it.
+You are an intelligent agent orchestrator. Your task is to analyze a user request and select the combination of specialized agents to complete it.
 
 OBJECTIVE: Decompose the user request into specific, actionable tasks and assign them to the most suitable agents.
 
@@ -103,6 +106,10 @@ CONSTRAINTS:
 - Avoid task duplication or overlap between agents
 - Prioritize cost efficiency - use fewer agents when possible
 - Each agent should have a clear, specific objective
+
+NOTES:
+- If you ever find a website URL in the given prompt and you have to get the content of it to analyze it, then you should think about using the web_scraper_agent
+- Except the URLs which are from github and are meant for raising PRs.
 
 USER REQUEST: "${prompt}"
 
@@ -127,9 +134,9 @@ IMPORTANT:
 `;
 
       console.log("📤 Sending request to Gemini...");
-      
+
       // Call Gemini API
-      const model = this.genAI.getGenerativeModel({ model: "gemini-2.5-flash", }); // has dynamic "thinking"
+      const model = this.genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); // has dynamic "thinking"
       const result = await model.generateContent(geminiPrompt);
       const response = await result.response;
       let geminiOutput = response.text().trim();
@@ -137,19 +144,23 @@ IMPORTANT:
       console.log("📥 Received response from Gemini");
 
       // Clean up the response to ensure it's valid JSON
-      if (geminiOutput.startsWith('```json')) {
-        geminiOutput = geminiOutput.replace(/```json\n?/, '').replace(/```$/, '');
-      } else if (geminiOutput.startsWith('```')) {
-        geminiOutput = geminiOutput.replace(/```\n?/, '').replace(/```$/, '');
+      if (geminiOutput.startsWith("```json")) {
+        geminiOutput = geminiOutput
+          .replace(/```json\n?/, "")
+          .replace(/```$/, "");
+      } else if (geminiOutput.startsWith("```")) {
+        geminiOutput = geminiOutput.replace(/```\n?/, "").replace(/```$/, "");
       }
 
       // Parse the Gemini response
-        let agentSequence;
+      let agentSequence;
       try {
         agentSequence = JSON.parse(geminiOutput);
       } catch (parseError) {
         console.error("❌ Failed to parse Gemini response:", geminiOutput);
-        throw new Error(`Invalid JSON response from Gemini: ${parseError.message}`);
+        throw new Error(
+          `Invalid JSON response from Gemini: ${parseError.message}`
+        );
       }
 
       if (!Array.isArray(agentSequence)) {
@@ -157,40 +168,51 @@ IMPORTANT:
       }
 
       // Validate and enrich the agent sequence with cost calculations
-      const enrichedAgentSequence = agentSequence.map(sequenceItem => {
-        const agent = agents.find(a => a.address.toLowerCase() === sequenceItem.agentAddress.toLowerCase());
-        
+      const enrichedAgentSequence = agentSequence.map((sequenceItem) => {
+        const agent = agents.find(
+          (a) =>
+            a.address.toLowerCase() === sequenceItem.agentAddress.toLowerCase()
+        );
+
         if (!agent) {
-          console.warn(`⚠️ Agent with address ${sequenceItem.agentAddress} not found`);
+          console.warn(
+            `⚠️ Agent with address ${sequenceItem.agentAddress} not found`
+          );
           return {
             ...sequenceItem,
             cost: 0,
             agentName: "Unknown Agent",
-            valid: false
+            valid: false,
           };
         }
 
         const cost = this.calculateAgentCost(agent.costPerOutputToken);
-        
+
         return {
           ...sequenceItem,
           cost: cost,
           agentName: agent.name,
           agentId: agent.id,
-          valid: true
+          valid: true,
         };
       });
 
       // Filter out invalid agents
-      const validAgentSequence = enrichedAgentSequence.filter(agentSequenceItem => agentSequenceItem.valid);
-      const invalidCount = enrichedAgentSequence.length - validAgentSequence.length;
-      
+      const validAgentSequence = enrichedAgentSequence.filter(
+        (agentSequenceItem) => agentSequenceItem.valid
+      );
+      const invalidCount =
+        enrichedAgentSequence.length - validAgentSequence.length;
+
       if (invalidCount > 0) {
         console.warn(`⚠️ ${invalidCount} agents were invalid and filtered out`);
       }
 
       // Calculate total cost
-      const totalCost = validAgentSequence.reduce((sum, agentSequenceItem) => sum + agentSequenceItem.cost, 0);
+      const totalCost = validAgentSequence.reduce(
+        (sum, agentSequenceItem) => sum + agentSequenceItem.cost,
+        0
+      );
 
       const jobId = uuidv4();
 
@@ -200,13 +222,16 @@ IMPORTANT:
         totalCost: totalCost,
         agentCount: validAgentSequence.length,
         originalPrompt: prompt,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
-      console.log(`✅ Generated quote with ${validAgentSequence.length} agents, total cost: $${totalCost.toFixed(6)}`);
-      
-      return jobProcessingSequence;
+      console.log(
+        `✅ Generated quote with ${
+          validAgentSequence.length
+        } agents, total cost: $${totalCost.toFixed(6)}`
+      );
 
+      return jobProcessingSequence;
     } catch (error) {
       console.error("❌ Error in getAgentSequence:", error);
       throw new Error(`Failed to generate agent sequence: ${error.message}`);

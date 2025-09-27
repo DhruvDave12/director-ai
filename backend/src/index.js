@@ -68,7 +68,7 @@ jobsRouter.post("/quote", async (req, res) => {
 // Execute job endpoint
 jobsRouter.post("/execute", async (req, res) => {
   try {
-    const { jobId, agentSequence, transferHash } = req.body;
+    const { jobId, agentSequence, transferHash, initialPrompt } = req.body;
 
     if (!jobId || !agentSequence) {
       return res.status(400).json({

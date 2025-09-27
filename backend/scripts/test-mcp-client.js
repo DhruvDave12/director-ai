@@ -19,9 +19,9 @@ async function listAvailableTools(client) {
       console.log(`     Description: ${tool.description}`);
       if (tool.inputSchema?.properties) {
         const params = Object.keys(tool.inputSchema.properties);
-        console.log(`     Parameters: ${params.join(', ')}`);
+        console.log(`     Parameters: ${params.join(", ")}`);
       }
-      console.log('');
+      console.log("");
     });
 
     return tools.tools;
@@ -125,11 +125,10 @@ async function testFreeTool(client) {
     const response = await client.callTool({
       name: "test_free_tool",
       arguments: {
-        prompt: "https://thielfellowtip.org/",
-        agentID: "web_scraper_agent"
+        prompt: "Hello from MCP client test!",
+        agentID: "test-client-001",
       },
     });
-
 
     console.log("✅ Free tool response:", JSON.stringify(response, null, 2));
     return response;
@@ -148,7 +147,7 @@ async function testPaidTool(client) {
       arguments: {
         prompt: "What's the weather like?",
         city: "San Francisco",
-        agentID: "test-client-001"
+        agentID: "test-client-001",
       },
     });
 
@@ -174,7 +173,9 @@ async function runTests() {
     const tools = await listAvailableTools(client);
 
     if (tools.length === 0) {
-      console.log("❌ No tools available. Make sure the agent server is running.");
+      console.log(
+        "❌ No tools available. Make sure the agent server is running."
+      );
       return;
     }
 
@@ -185,22 +186,20 @@ async function runTests() {
     await testImageGenerationAgent(client);
 
     // Test paid tool
-    // await testPaidTool(client);
+    await testPaidTool(client);
 
     console.log("\n🎉 All tests completed!");
-
   } catch (error) {
     console.error("❌ Test error:", error);
 
-    if (error.code === 'ECONNREFUSED') {
+    if (error.code === "ECONNREFUSED") {
       console.error("💡 Make sure the agent server is running:");
       console.error("   cd agent-server && npm run dev");
     }
 
-    if (error.message.includes('EVM_PRIVATE_KEY')) {
+    if (error.message.includes("EVM_PRIVATE_KEY")) {
       console.error("💡 Make sure EVM_PRIVATE_KEY is set in your .env file");
     }
-
   } finally {
     if (client) {
       try {

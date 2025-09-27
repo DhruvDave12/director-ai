@@ -22,7 +22,12 @@ export const getClient = async () => {
     throw new Error("AGENT_SERVER_URL is not set");
   }
 
-  const transport = new StreamableHTTPClientTransport(new URL(AGENT_SERVER_URL));
+  const transport = new StreamableHTTPClientTransport(
+    new URL(AGENT_SERVER_URL),
+    {
+      timeout: 600000,
+    }
+  );
 
   await client.connect(transport);
 

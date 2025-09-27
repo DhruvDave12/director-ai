@@ -1,0 +1,13 @@
+diff --git a/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/protocol.js b/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/protocol.js
+index 5848c62..ae0f144 100644
+--- a/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/protocol.js
++++ b/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/protocol.js
+@@ -2,7 +2,7 @@ import { CancelledNotificationSchema, ErrorCode, isJSONRPCError, isJSONRPCReques
+ /**
+  * The default request timeout, in miliseconds.
+  */
+-export const DEFAULT_REQUEST_TIMEOUT_MSEC = 60000;
++export const DEFAULT_REQUEST_TIMEOUT_MSEC = 6000000;
+ /**
+  * Implements MCP protocol framing on top of a pluggable transport, including
+  * features like request/response linking, notifications, and progress.

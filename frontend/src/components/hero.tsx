@@ -347,7 +347,7 @@ const HeroSection = () => {
             )}
 
             {/* Final Output State */}
-            {executeResponse && executeResponse.length > 0 && (
+            {executeResponse && (
               <div
                 className="bg-slate-50/50 rounded-2xl p-6 border border-slate-200 backdrop-blur-sm"
                 style={{
