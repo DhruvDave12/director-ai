@@ -156,6 +156,36 @@ async function testContentAnalysisAgent(client) {
   }
 }
 
+async function testFarcasterSentimentChain(client) {
+  console.log("🆓 Testing Farcaster Sentiment Chain...");
+
+  try {
+    const scraperResponse = await client.callTool({
+      name: "test_free_tool",
+      arguments: {
+        prompt: "https://cred.club/",
+        agentID: "web_scraper_agent"
+      },
+    });
+    console.log("Web scraping agent completed task ✅")
+
+    const farcasterResponse = await client.callTool({
+      name: "test_free_tool",
+      arguments: {
+        prompt: scraperResponse.content[0].text,
+        agentID: "farcaster_sentiment_agent"
+      },
+    })
+    console.log("Farcaster sentiment agent completed task ✅")
+
+    console.log("✅ Free tool response:", JSON.stringify(farcasterResponse, null, 2));
+    return farcasterResponse;
+  } catch (error) {
+    console.error("❌ Error calling free tool:", error);
+    return null;
+  }
+}
+
 async function testPaidTool(client) {
   console.log("💰 Testing paid weather tool...");
 
@@ -201,7 +231,7 @@ async function runTests() {
     // await testFreeTool(client);
     // await testSEOAdvisorChain(client);
 
-    await testContentAnalysisAgent(client);
+    await testFarcasterSentimentChain(client);
 
     // Test paid tool
     await testPaidTool(client);

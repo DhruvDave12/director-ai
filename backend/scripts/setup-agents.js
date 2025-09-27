@@ -71,6 +71,13 @@ const agents = [
     address: "0x1734424505540188195351964754846154681093",
     costPerOutputToken: 0.000002, // $0.000001 per output token
   },
+  {
+    id: uuidv4(),
+    name: "farcaster_sentiment_agent",
+    description: "Specialises in analysing farcaster sentiment and generating a gtm strategy",
+    address: "0x70181B550073B296D50b843b134440270B275050",
+    costPerOutputToken: 0.000003, // $0.000001 per output token
+  },
 ];
 
 async function setupAgents() {
