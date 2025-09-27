@@ -222,7 +222,7 @@ const Plans = ({ plans, onReject, onAccept }: IPlansRender) => {
                                     </p>
                                 </div>
                                 <p className="font-bold text-purple-700 text-lg">
-                                    {plan.cost.toFixed(4)} ETH
+                                    {plan.cost.toFixed(4)} USDC
                                 </p>
                             </div>
                             <p className="text-slate-600 mt-3 text-sm leading-relaxed">
