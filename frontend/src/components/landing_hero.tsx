@@ -2,7 +2,7 @@
 import TypeWriterComponent from "typewriter-effect";
 import { Button } from "./ui/button";
 import { ArrowRight, Sparkles, Zap, Bot, Star, Users, Shield } from "lucide-react";
-import { useAccount, useConnect } from "wagmi";
+import { useAccount } from "wagmi";
 import { useAppKit } from "@reown/appkit/react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -108,8 +108,6 @@ export default function LandingHero() {
                                 </div>
                             </div>
                         </div>
-
-                        {/* Description */}
                         <div className="max-w-2xl mb-10">
                             <p className="text-lg md:text-xl text-gray-300 leading-relaxed">
                                 The ultimate marketplace for creators, developers, and AI enthusiasts to build,
@@ -119,11 +117,9 @@ export default function LandingHero() {
                                 <span className="font-semibold text-pink-400">seamless coordination</span>.
                             </p>
                         </div>
-
-                        {/* CTA Button */}
                         <div className="flex justify-start items-center mb-16">
                             <Button
-                                className="group relative overflow-hidden bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold text-lg px-12 py-4 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 border-0 min-w-[250px]"
+                                className="group relative overflow-hidden bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold text-lg px-12 py-6 rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-300 border-0 min-w-[250px]"
                                 onClick={() => open()}
                             >
                                 <span className="relative z-10 flex items-center gap-2">
@@ -133,8 +129,6 @@ export default function LandingHero() {
                                 </span>
                             </Button>
                         </div>
-
-                        {/* Stats */}
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-2xl mb-12">
                             <div className="text-left p-4 bg-gray-900/30 backdrop-blur-sm rounded-xl border border-gray-700/50 hover:border-purple-500/50 transition-all duration-300">
                                 <div className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 mb-1">
@@ -189,11 +183,8 @@ export default function LandingHero() {
                             </div>
                         </div>
                     </div>
-
-                    {/* Right Column - Lottie Animation */}
                     <div className="flex justify-center items-center">
                         <div className="relative w-full max-w-lg h-100 lg:h-[500px]">
-                            {/* Lottie Animation or Placeholder */}
                             {animationData ? (
                                 <Lottie
                                     animationData={animationData}
@@ -218,8 +209,6 @@ export default function LandingHero() {
                                     </div>
                                 </div>
                             )}
-
-                            {/* Decorative elements around animation */}
                             <div className="absolute -top-4 -right-4 w-8 h-8 bg-purple-500/20 rounded-full animate-pulse"></div>
                             <div className="absolute -bottom-4 -left-4 w-6 h-6 bg-pink-500/20 rounded-full animate-pulse delay-1000"></div>
                             <div className="absolute top-1/2 -left-6 w-4 h-4 bg-blue-500/20 rounded-full animate-pulse delay-500"></div>

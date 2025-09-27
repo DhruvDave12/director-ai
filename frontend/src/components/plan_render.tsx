@@ -20,19 +20,38 @@ const GitHubIcon = () => (
     </svg>
 );
 
+const ContentAgentIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+        <polyline points="14 2 14 8 20 8"></polyline>
+        <line x1="16" y1="13" x2="8" y2="13"></line>
+        <line x1="16" y1="17" x2="8" y2="17"></line>
+        <polyline points="10 9 9 9 8 9"></polyline>
+    </svg>
+);
+
+const EmailerAgentIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+        <polyline points="22,6 12,13 2,6"></polyline>
+    </svg>
+);
 
 const AgentIcon = ({ agentName }: { agentName: string }) => {
     const name = agentName.toLowerCase();
     if (name.includes("scrape")) return <WebScraperIcon />;
     if (name.includes("seo")) return <SEOIcon />;
     if (name.includes("github")) return <GitHubIcon />;
-    // Fallback Icon
+    if (name.includes("content")) return <ContentAgentIcon />;
+    if (name.includes("email")) return <EmailerAgentIcon />;
     return (
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 8V4H8" /><rect x="4" y="4" width="16" height="16" rx="2" /><path d="M12 12h4" /><path d="M12 16h4" /><path d="M8 12h.01" /><path d="M8 16h.01" />
         </svg>
     );
 };
+
+
 
 interface IPlansRender {
   plans: IPlan[];
@@ -82,30 +101,6 @@ const Plans = ({ plans, onAccept, onReject }: IPlansRender) => {
                         </div>
                     </div>
                 ))}
-            </div>
-
-            {/* Summary and Actions */}
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-5 mt-8 space-y-4 border border-purple-200">
-                <div className="flex justify-between items-center">
-                    <p className="text-lg font-semibold text-slate-700">Total Estimated Cost:</p>
-                    <p className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
-                        {totalAmount.toFixed(4)} ETH
-                    </p>
-                </div>
-                <div className="w-full flex justify-between items-center gap-x-4 pt-2">
-                    <button 
-                        onClick={onReject}
-                        className="w-full py-3 px-4 bg-white text-slate-700 font-bold rounded-lg shadow-sm border border-slate-300 hover:bg-slate-50 transition-all duration-200"
-                    >
-                        Reject
-                    </button>
-                    <button 
-                        onClick={onAccept}
-                        className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-lg shadow-lg hover:shadow-purple-200/80 transform hover:scale-105 transition-all duration-200"
-                    >
-                        Confirm & Execute
-                    </button>
-                </div>
             </div>
         </div>
     );
