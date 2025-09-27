@@ -6,6 +6,7 @@ const morgan = require("morgan");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { getClient } = require("./services/agent-payer.service");
 const agentOrderer = require("./services/agent-sequencer.service");
+const agentExecutor = require("./services/agent-executor.service");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -44,13 +45,12 @@ jobsRouter.post("/quote", async (req, res) => {
     }
 
     console.log(
-      `📝 Generating quote for prompt: "${prompt.substring(0, 100)}${
-        prompt.length > 100 ? "..." : ""
+      `📝 Generating quote for prompt: "${prompt.substring(0, 100)}${prompt.length > 100 ? "..." : ""
       }"`
     );
 
-    // Use agent orderer service to get execution plan and costs
-    const quote = await agentOrderer.getAgentOrder(prompt);
+    // Use agent sequencer service to get execution plan and costs
+    const quote = await agentOrderer.getAgentSequence(prompt);
 
     res.json({
       success: true,
@@ -68,25 +68,47 @@ jobsRouter.post("/quote", async (req, res) => {
 // Execute job endpoint
 jobsRouter.post("/execute", async (req, res) => {
   try {
-    const { jobId, agentOrder } = req.body;
+    const { jobId, agentSequence } = req.body;
 
-    if (!jobId || !agentOrder) {
+    if (!jobId || !agentSequence) {
       return res.status(400).json({
-        error: "jobId and agentOrder are required",
+        error: "jobId and agentSequence are required",
       });
     }
 
     console.log(`🚀 Starting execution for job: ${jobId}`);
+    console.log(`📋 Agent sequence contains ${agentSequence.length} agents`);
 
-    // TODO: Implement agent execution orchestration
-    // This will coordinate the execution of agents in the specified order
-    // Each agent will be called sequentially or in parallel based on dependencies
+    // Validate agentSequence structure
+    if (!Array.isArray(agentSequence) || agentSequence.length === 0) {
+      return res.status(400).json({
+        error: "Invalid agentSequence: must be a non-empty array",
+        jobId: jobId
+      });
+    }
+
+    // Execute the agent sequence
+    const executionResults = await agentExecutor.executeAgentSequence(agentSequence);
+
+    // Calculate execution summary
+    const successfulAgents = executionResults.filter(result => result.status === 'completed');
+    const failedAgents = executionResults.filter(result => result.status === 'failed');
+    const totalCost = executionResults.reduce((sum, result) => sum + result.executionCost, 0);
+
+    console.log(`✅ Execution completed: ${successfulAgents.length} successful, ${failedAgents.length} failed`);
+    console.log(`💰 Total execution cost: $${totalCost.toFixed(6)}`);
 
     res.json({
       jobId: jobId,
-      status: "",
+      status: failedAgents.length === 0 ? "completed" : "partial_failure",
       timestamp: new Date().toISOString(),
-      message: "Execute endpoint cleared and ready for implementation",
+      executionSummary: {
+        totalAgents: agentSequence.length,
+        successfulAgents: successfulAgents.length,
+        failedAgents: failedAgents.length,
+        totalCost: totalCost
+      },
+      results: executionResults
     });
   } catch (error) {
     console.error("❌ Error in execute endpoint:", error);
