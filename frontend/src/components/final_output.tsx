@@ -2,6 +2,9 @@ import Link from "next/link";
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { IFinalOutput } from "../../types";
+import { getExplorerUrl } from "@/lib/utils";
+import { getChainId } from "@wagmi/core";
+import { config } from "@/config";
 
 // External link icon
 const ExternalLinkIcon = () => (
@@ -44,6 +47,7 @@ const CollapseIcon = () => (
 const FinalOutput = ({ output }: { output: IFinalOutput }) => {
   const [expandedAgents, setExpandedAgents] = useState<{ [key: string]: boolean }>({});
   const [copySuccess, setCopySuccess] = useState<{ [key: string]: boolean }>({});
+  const chainId = getChainId(config);
   
   const toggleAgentExpansion = (agentAddress: string) => {
     setExpandedAgents(prev => ({
@@ -201,7 +205,7 @@ const FinalOutput = ({ output }: { output: IFinalOutput }) => {
                         </p>
                       </div>
                       <Link 
-                        href={`https://amoy.polygonscan.com/tx/${agent.result._meta["x402/payment-response"].transaction}`}
+                        href={getExplorerUrl(chainId, agent.result._meta["x402/payment-response"].transaction)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium rounded transition-all duration-200 hover:scale-105"

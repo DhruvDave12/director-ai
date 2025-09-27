@@ -1,4 +1,4 @@
-import { polygonAmoy, sepolia } from "viem/chains";
+import { baseSepolia, polygonAmoy, sepolia } from "viem/chains";
 
 
 
@@ -32,6 +32,8 @@ export function getTokenAddress(chainId: number | undefined) {
             return '0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582'; // MATIC
         case sepolia.id: // sepolia
             return '0xCaC524BcA292aaade2DF8A05cC58F0a65B1B3bB9'; // Sepolia ETH
+        case baseSepolia.id: // base sepolia
+            return '0x036CbD53842c5426634e7929541eC2318f3dCF7e'; // Base Sepolia ETH
         default:
             return `0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582`;
     }

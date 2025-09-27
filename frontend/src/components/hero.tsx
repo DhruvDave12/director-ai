@@ -177,14 +177,7 @@ const HeroSection = () => {
       }
       const data = await response.json();
 
-      if (!data.success) {
-        const errorMessage = data.message || data.error || "Execution failed";
-        toast(errorMessage);
-        return;
-      }
-
       setExecuteResponse(data);
-      console.log(data);
     } catch (err) {
       console.error(err);
       let errorMessage = "An error occurred while processing your request";
