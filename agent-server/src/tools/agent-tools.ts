@@ -81,7 +81,8 @@ export async function registerAgentTools(server: any) {
   }
 
   for (const agent of agents) {
-    const toolName = `agent_${agent.address.toLowerCase()}`;
+    // Note: This should be specifically the name
+    const toolName = agent.name;
 
     server.paidTool(
       toolName,
