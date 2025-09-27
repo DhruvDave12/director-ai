@@ -1,6 +1,6 @@
 # Instructions
 
-During you interaction with the user, if you find anything reusable in this project (e.g. version of a library, model name), especially about a fix to a mistake you made or a correction you received, you should take note in the `Lessons` section in the `.cursorrules` file so you will not make the same mistake again. 
+During you interaction with the user, if you find anything reusable in this project (e.g. version of a library, model name), especially about a fix to a mistake you made or a correction you received, you should take note in the `Lessons` section in the `.cursorrules` file so you will not make the same mistake again.
 
 You should also use the `.cursorrules` file as a scratchpad to organize your thoughts. Especially when you receive a new task, you should first review the content of the scratchpad, clear old different task if necessary, first explain the task, and plan the steps you need to take to complete the task. You can use todo markers to indicate the progress, e.g.
 [X] Task 1
@@ -99,6 +99,92 @@ If needed, you can further use the `web_scraper.py` file to scrape the web page 
 - When using seaborn styles in matplotlib, use 'seaborn-v0_8' instead of 'seaborn' as the style name due to recent seaborn version changes
 - Use 'gpt-4o' as the model name for OpenAI's GPT-4 with vision capabilities
 
+## Agent Creation Process (agent-server/)
+
+### Understanding Agent Registration System
+The agent-server uses a factory pattern with registry for managing agents:
+
+1. **Base Agent Structure**: All agents extend `BaseAgent` class from `src/types/agent.ts`
+2. **Agent Factory**: Registry system in `src/core/agent-factory.ts` manages agent creation
+3. **Registration**: Agents are registered in `src/index.ts` in `initializeAgents()` function
+
+### Agent Creation Steps
+
+#### Step 1: Create Agent Class
+Create new agent in `src/agents/main/[agent-name].ts`:
+```typescript
+import type { AgentConfig, AgentRequest, AgentResponse, AgentExecutionContext } from "../../types/agent.js";
+import { BaseAgent } from "../../types/agent.js";
+
+export class YourAgentClass extends BaseAgent {
+  constructor() {
+    const config: AgentConfig = {
+      id: "your_agent_id", // Must be unique
+      name: "Your Agent Name",
+      description: "Agent description",
+      version: "1.0.0",
+      capabilities: ["capability1", "capability2"],
+      metadata: { /* agent-specific config */ },
+    };
+    super(config);
+  }
+
+  async execute(request: AgentRequest, context: AgentExecutionContext): Promise<AgentResponse> {
+    // Implementation logic
+  }
+
+  async healthCheck(): Promise<boolean> {
+    // Health check logic
+  }
+}
+
+export const createYourAgent = (): BaseAgent => new YourAgentClass();
+```
+
+#### Step 2: Register Agent in Main Index
+Update `src/index.ts`:
+1. Import the factory function
+2. Register in `initializeAgents()` function
+3. Create default instance
+
+#### Step 3: Reusable Utilities
+- Use `src/utils/gemini-util.ts` for Gemini AI interactions
+- Create shared utilities in `src/utils/` for common functionality
+- Follow singleton pattern for stateless utilities
+
+### Key Patterns
+- **Payload Handling**: Agents receive payload as string (like web scraper)
+- **Error Handling**: Always return structured AgentResponse with success/error
+- **Metadata**: Include processing time, content length, request IDs
+- **Health Checks**: Implement meaningful health checks for external dependencies
+- **Factory Pattern**: Export factory function for registry registration
+
+### SEO Optimization Agent Example
+- Created `seo-optimization-agent.ts` following the pattern
+- Uses `geminiUtil` for AI-powered SEO analysis
+- Takes same payload format as web scraper (string input)
+- Provides comprehensive SEO recommendations with structured output
+
+### GitHub Agent Example
+- Created `github-agent.ts` following the pattern
+- **Simplified to SEO-only agent**: Takes string payload containing SEO context with embedded GitHub repo URL
+- **Payload Format**: String input (no JSON parsing) containing SEO context and repository URL
+- **Core Functionality**:
+  - Extracts repository URL from context using regex patterns
+  - Uses Gemini AI to generate complete SEO-optimized HTML from context
+  - Creates unique branch names with format: `director-ai-{UUID}`
+  - Commits optimized HTML to new branch and creates PR
+  - Returns simple "Action completed check on github" message
+- **Repository URL Detection**: Supports both `github.com/owner/repo` and direct `owner/repo` patterns
+- **AI-Powered HTML Generation**: Creates complete HTML5 documents with comprehensive SEO elements
+- Uses Octokit for GitHub API interactions and Gemini for AI-powered HTML generation
+
+### Dependencies
+- `@google/genai` for Gemini AI integration
+- `@octokit/rest` for GitHub API operations
+- `dotenv` for environment variable management
+- Ensure GOOGLE_API_KEY and GITHUB_TOKEN are configured in environment
+
 # Scratchpad
 
 ## Current Task: Agent Orchestrator Service Implementation
@@ -114,10 +200,10 @@ Building an agent orchestrator server with the following requirements:
 
 ### Task Progress
 [X] Create agent-orderer.service.js with Gemini integration
-[X] Create setup-agents.js script to populate Redis with 4 hardcoded agents  
+[X] Create setup-agents.js script to populate Redis with 4 hardcoded agents
 [X] Update .cursorrules file with task documentation
 [X] Test the quote endpoint with the new service
-[X] Run agent setup script to populate Redis 
+[X] Run agent setup script to populate Redis
 [X] Verify integration works end-to-end
 [X] Clean out execute route code as requested
 [X] Fix Redis configuration and JSON parsing issues
@@ -138,7 +224,7 @@ Building an agent orchestrator server with the following requirements:
 
 #### 4 Core Agents
 1. Web Scraper Agent (0x34D5a31c1b74ff7d2682743708a5C6Ac3CB30627) - Website data scraping
-2. Data Analyzer Agent (0x53185299C535286c57e2338e35ebd8A56C9Ab2Dd) - Data analysis and extraction  
+2. Data Analyzer Agent (0x53185299C535286c57e2338e35ebd8A56C9Ab2Dd) - Data analysis and extraction
 3. SEO Optimization Agent (0x2f7D95566BfAF09Ee5CA41765486181bdC827583) - SEO suggestions
 4. GitHub Code Agent (0xBe53bed7B566b5c5a11361664cf9eaE5bB18Ed9a) - Code writing and repository management
 
@@ -167,7 +253,7 @@ Each item in the agentSequence array contains:
 
 ### Files Created/Modified
 - ✅ backend/src/services/agent-orderer.service.js - Core service with Gemini integration
-- ✅ backend/scripts/setup-agents.js - Redis population script 
+- ✅ backend/scripts/setup-agents.js - Redis population script
 - ✅ .cursorrules - Updated with task documentation
 
 ### Next Steps
@@ -183,14 +269,14 @@ Each item in the agentSequence array contains:
 ### Current Status: READY FOR TESTING
 The agent orchestrator system is now complete with:
 - Quote generation via AgentSequencerService
-- Agent execution via AgentExecutorService  
+- Agent execution via AgentExecutorService
 - Full execute endpoint implementation
 - Comprehensive test utilities
 
 ### Think like a senior software engineer
 - Clean separation of concerns (service layer, data access)
 - Proper error handling and logging throughout
-- Validation of inputs and API responses  
+- Validation of inputs and API responses
 - Cost calculation abstracted into reusable method
 - Configuration via environment variables
 - Comprehensive debugging output for troubleshooting

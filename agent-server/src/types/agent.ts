@@ -14,7 +14,7 @@ export interface AgentRequest {
 
 export interface AgentResponse {
   success: boolean;
-  data?: any;
+  data?: string;
   error?: string;
   metadata?: Record<string, any>;
 }

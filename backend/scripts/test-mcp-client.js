@@ -30,6 +30,44 @@ async function listAvailableTools(client) {
     return [];
   }
 }
+async function testSEOAdvisorChain(client) {
+  console.log("🆓 Testing SEO advisor chain...");
+
+  try {
+    const scraperResponse = await client.callTool({
+      name: "test_free_tool",
+      arguments: {
+        prompt: "https://thielfellowship.org/",
+        agentID: "web_scraper_agent"
+      },
+    });
+    console.log("Web scraping agent completed task ✅")
+    const seoResponse = await client.callTool({
+      name: "test_free_tool",
+      arguments: {
+        prompt: scraperResponse.content[0].text,
+        agentID: "seo_optimization_agent"
+      },
+    })
+    console.log("SEO Advisor Agent completed task ✅")
+
+    const GITHUB_TEST_URL = "https://github.com/DhruvDave12/Portfolio-SEO"
+    const githubResponse = await client.callTool({
+      name: "test_free_tool",
+      arguments: {
+        prompt: `${seoResponse.content[0].text}\n ${GITHUB_TEST_URL}`,
+        agentID: "github_code_agent"
+      }
+    })
+
+    console.log("Github Agent completed task ✅")
+    console.log("✅ Free tool response:", JSON.stringify(githubResponse, null, 2));
+    return githubResponse;
+  } catch (error) {
+    console.error("❌ Error calling free tool:", error);
+    return null;
+  }
+}
 
 async function testFreeTool(client) {
   console.log("🆓 Testing free tool...");
@@ -38,10 +76,11 @@ async function testFreeTool(client) {
     const response = await client.callTool({
       name: "test_free_tool",
       arguments: {
-        prompt: "https://thielfellowship.org/",
+        prompt: "https://thielfellowtip.org/",
         agentID: "web_scraper_agent"
       },
     });
+
 
     console.log("✅ Free tool response:", JSON.stringify(response, null, 2));
     return response;
@@ -91,7 +130,8 @@ async function runTests() {
     }
 
     // Test free tool
-    await testFreeTool(client);
+    // await testFreeTool(client);
+    await testSEOAdvisorChain(client);
 
     // Test paid tool
     // await testPaidTool(client);
