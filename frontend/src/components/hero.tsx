@@ -18,6 +18,7 @@ import {
 } from '@wagmi/core';
 import { config } from "@/config";
 import LoadingComponent from "./loading_text";
+import { Button } from "./ui/button";
 
 const HeroSection = () => {
   const router = useRouter();
@@ -335,7 +336,7 @@ const HeroSection = () => {
                 <Plans plans={plan} onReject={resetState} onAccept={onAccept} />
 
                 {/* Summary and Actions */}
-                <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-5 mt-8 space-y-4 border border-purple-200">
+                {plan.length && (<div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-5 mt-8 space-y-4 border border-purple-200">
                   <div className="flex justify-between items-center">
                     <p className="text-lg font-semibold text-slate-700">Total Estimated Cost:</p>
                     {totalAmount && <p className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
@@ -343,20 +344,20 @@ const HeroSection = () => {
                     </p>}
                   </div>
                   <div className="w-full flex justify-between items-center gap-x-4 pt-2">
-                    <button
+                    <Button
                       onClick={onReject}
                       className="w-full py-3 px-4 bg-white text-slate-700 font-bold rounded-lg shadow-sm border border-slate-300 hover:bg-slate-50 transition-all duration-200"
                     >
                       Reject
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       onClick={onAccept}
                       className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-lg shadow-lg hover:shadow-purple-200/80 transform transition-all duration-200"
                     >
                       Confirm & Execute
-                    </button>
+                    </Button>
                   </div>
-                </div>
+                </div>)}
               </div>
             )}
 
