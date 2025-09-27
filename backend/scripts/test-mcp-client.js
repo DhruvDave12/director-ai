@@ -68,6 +68,25 @@ async function testSEOAdvisorChain(client) {
     return null;
   }
 }
+async function testImageGenerationAgent(client) {
+  console.log("🆓 Testing image generation agent...");
+
+  try {
+    const response = await client.callTool({
+      name: "image_generation_agent",
+      arguments: {
+        prompt: "Generate a greek demigod named dhruv dave",
+        agentID: "image_generation_agent"
+      },
+    });
+
+    console.log("✅ Image generation agent response:", JSON.stringify(response, null, 2));
+    return response;
+  } catch (error) {
+    console.error("❌ Error calling image generation agent:", error);
+    return null;
+  }
+}
 
 async function testCreativeEmailMarketerAgent(client) {
   console.log("🆓 Testing Email Agent Chain...");
@@ -143,7 +162,7 @@ async function testPaidTool(client) {
 
 async function runTests() {
   console.log("🧪 Starting MCP Client Tests");
-  console.log("=" .repeat(50));
+  console.log("=".repeat(50));
 
   let client;
 
@@ -161,7 +180,9 @@ async function runTests() {
 
     // Test free tool
     // await testFreeTool(client);
-    await testCreativeEmailMarketerAgent(client);
+    // await testSEOAdvisorChain(client);
+
+    await testImageGenerationAgent(client);
 
     // Test paid tool
     // await testPaidTool(client);
