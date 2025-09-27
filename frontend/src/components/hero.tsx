@@ -1,12 +1,24 @@
 "use client";
-import { useEffect, useState } from "react";
-import { useAccount } from "wagmi";
+
+import { use, useEffect, useState } from "react";
+import { useAccount, useSendTransaction, useWaitForTransactionReceipt, WagmiConfig } from "wagmi";
 import FinalOutput from "./final_output";
 import Plans from "./plan_render";
 import { IOutput, IPlan } from "../../types";
 import { userStories } from "@/constants";
 import PromptInput from "./prompt_input";
 import { useRouter } from "next/navigation";
+import { erc20Abi, parseEther, parseUnits } from "viem";
+import { toast } from "sonner";
+import {
+  writeContract,
+  readContract,
+  simulateContract,
+  waitForTransactionReceipt,
+} from '@wagmi/core';
+import { config } from "@/config";
+import LoadingComponent from "./loading_text";
+import { Button } from "./ui/button";
 
 const HeroSection = () => {
   const router = useRouter();
@@ -15,14 +27,45 @@ const HeroSection = () => {
   const [prompt, setPrompt] = useState("");
   const productName = "DIRECTOR.AI";
   const [promptExecuted, setPromptExecuted] = useState(false);
+  // State to manage the loading state
+  const [loadingState, setLoadingState] = useState<'plan' | 'execute' | null>(null);
+
+  const getErrorMessage = async (response: Response): Promise<string> => {
+    try {
+      const errorData = await response.json();
+      return errorData.message || errorData.error || `Request failed with status: ${response.status}`;
+    } catch {
+      return `Request failed with status: ${response.status}`;
+    }
+  };
 
   const [isLoading, setIsLoading] = useState(false);
-  const [finalOutputData, setFinalOutputData] = useState<
-    IOutput[] | undefined
-  >(undefined);
-
+  const [finalOutputData, setFinalOutputData] = useState<IOutput[] | undefined>(undefined);
   const [plan, setPlan] = useState<IPlan[] | undefined>(undefined);
   const [txHash, setTxHash] = useState<string | undefined>(undefined);
+  const [planResponse, setPlanResponse] = useState<any>(undefined);
+  const [executeResponse, setExecuteResponse] = useState<any>(undefined);
+
+  const totalAmount = plan?.reduce((acc, plan) => acc + plan.cost, 0);
+
+  const {
+    data: hash,
+    isPending,
+    sendTransaction
+  } = useSendTransaction()
+
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const formData = new FormData(e.target as HTMLFormElement)
+    const to = formData.get('address') as `0x${string}`
+    const value = formData.get('value') as string
+    sendTransaction({ to, value: parseEther(value) })
+  }
+
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({
+      hash,
+    })
 
   useEffect(() => {
     if (!isConnected) {
@@ -39,15 +82,16 @@ const HeroSection = () => {
       } else {
         clearInterval(typingInterval);
       }
-    }, 100); // Slightly slower for smoother typing
+    }, 100);
 
     return () => clearInterval(typingInterval);
   }, []);
 
   const handleSendPrompt = async () => {
     if (prompt.trim()) {
-      setPromptExecuted(true); // Trigger the UI transition
+      setPromptExecuted(true);
       setIsLoading(true);
+      setLoadingState('plan');
       try {
         const response = await fetch(
           "https://director-ai-production.up.railway.app/api/jobs/quote",
@@ -61,53 +105,129 @@ const HeroSection = () => {
         );
 
         if (!response.ok) {
-          throw new Error(`API request failed with status: ${response.status}`);
+          const errorMessage = await getErrorMessage(response);
+          throw new Error(errorMessage);
         }
 
         const data = await response.json();
 
         if (data.success && data.agentSequence) {
+          setPlanResponse(data);
           setPlan(data.agentSequence);
         } else {
-          alert(data.message || "Failed to get a valid plan from the server.");
-          setPromptExecuted(false); // Reset UI on failure
+          const errorMessage = data.message || data.error || "Failed to get a valid plan from the server.";
+          toast(errorMessage);
+          setPromptExecuted(false);
         }
       } catch (err) {
         console.error(err);
-        alert(
-          "An error occurred while processing your request. Please try again."
-        );
-        setPromptExecuted(false); // Reset UI on error
+        const errorMessage = err instanceof Error ? err.message : "An error occurred while processing your request. Please try again.";
+        toast(errorMessage);
+        setPromptExecuted(false);
       } finally {
         setIsLoading(false);
+        setLoadingState(null);
       }
-    }
-  };
-
-  const handleKeyPress = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      await handleSendPrompt();
     }
   };
 
   const onAccept = async () => {
     try {
       setIsLoading(true);
-      // Contract call and execution logic here
-      console.log("Plan accepted:", plan);
+      setLoadingState('execute');
+      if (totalAmount === undefined || totalAmount === 0) {
+        toast("Invalid total amount for transaction.");
+        setIsLoading(false);
+        setLoadingState(null);
+        return;
+      }
+      if (!plan || plan.length === 0) {
+        toast("No execution plan available.");
+        setIsLoading(false);
+        setLoadingState(null);
+        return;
+      }
+      if(process.env.NEXT_PUBLIC_SERVER_ADDRESS === undefined) {
+        toast("Server address is not defined.");
+        setIsLoading(false);
+        setLoadingState(null);
+        return;
+      }
+      if (!isConnected) {
+        toast("Wallet not connected.");
+        setIsLoading(false);
+        setLoadingState(null);
+        return;
+      }
+      const to = process.env.NEXT_PUBLIC_SERVER_ADDRESS as `0x${string}`;
+
+      const hash = await writeContract(config, {
+        address: `0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582` as `0x${string}`,
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [
+          to,
+          parseUnits(totalAmount.toString(),6)
+        ],
+      });
+      await waitForTransactionReceipt(config, {
+        hash: hash,
+      });
+
+      const response = await fetch(
+        "https://director-ai-production.up.railway.app/api/jobs/execute",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            jobId:planResponse.jobId,
+            agentSequence:planResponse.agentSequence,
+            transferHash: hash,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorMessage = await getErrorMessage(response);
+        throw new Error(errorMessage);
+      }
+      const data = await response.json();
+
+      if (!data.success) {
+        const errorMessage = data.message || data.error || "Execution failed";
+        toast(errorMessage);
+        return;
+      }
+
+      setExecuteResponse(data);
+      console.log(data);
     } catch (err) {
       console.error(err);
-      alert(
-        "An error occurred while processing your request. Please try again."
-      );
+      let errorMessage = "An error occurred while processing your request";
+
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === 'string') {
+        errorMessage = err;
+      }
+
+      toast(errorMessage);
     } finally {
       setIsLoading(false);
+      setLoadingState(null);
     }
+  };
+
+  const onReject = () => {
+    resetState();
   };
 
   const resetState = () => {
     setPromptExecuted(false);
     setIsLoading(false);
+    setLoadingState(null);
     setPlan(undefined);
     setFinalOutputData(undefined);
     setPrompt("");
@@ -115,19 +235,20 @@ const HeroSection = () => {
 
   return (
     <div
-      className={`min-h-screen w-full bg-gradient-to-br from-slate-50 to-blue-50/30 flex flex-col relative overflow-hidden transition-all duration-700 ease-out ${
-        promptExecuted ? "justify-start pt-16" : "justify-center pt-0"
-      }`}
+      className={`min-h-screen w-full bg-gradient-to-br from-slate-50 to-blue-50/30 flex flex-col relative overflow-hidden transition-all duration-700 ease-out ${promptExecuted ? "justify-start pt-16" : "justify-center pt-0"
+        }`}
     >
+      <div className="absolute top-4 right-4 z-20">
+        <w3m-account-button />
+      </div>
       <div className="relative z-10 w-full max-w-4xl mx-auto px-4 py-8">
         <div className="p-0 md:p-4">
           {/* Animated Header Section */}
           <div
-            className={`text-center space-y-6 transition-all duration-700 ease-out transform ${
-              promptExecuted
+            className={`text-center space-y-6 transition-all duration-700 ease-out transform ${promptExecuted
                 ? "opacity-0 scale-95 -translate-y-8 mb-0 pointer-events-none max-h-0 overflow-hidden"
                 : "opacity-100 scale-100 translate-y-0 mb-12 max-h-screen"
-            }`}
+              }`}
             style={{
               transitionProperty: 'opacity, transform, max-height, margin-bottom',
             }}
@@ -150,14 +271,13 @@ const HeroSection = () => {
           </div>
 
           {/* Prompt Input - now persistent */}
-          <div 
-            className={`w-full mb-8 transition-all duration-500 ease-out ${
-              promptExecuted ? 'transform -translate-y-4' : 'transform translate-y-0'
-            }`}
+          <div
+            className={`w-full mb-8 transition-all duration-500 ease-out ${promptExecuted ? 'transform -translate-y-4' : 'transform translate-y-0'
+              }`}
           >
             <PromptInput
               value={prompt}
-              onChange={(e: any) => setPrompt(e.target.value)}
+              onChange={setPrompt}
               onSend={handleSendPrompt}
               loading={isLoading}
               placeholder="Describe your AI workflow needs..."
@@ -169,11 +289,10 @@ const HeroSection = () => {
           <div className="w-full">
             {/* Example Prompts */}
             <div
-              className={`transition-all duration-500 ease-out transform ${
-                promptExecuted 
-                  ? "opacity-0 scale-95 -translate-y-4 max-h-0 overflow-hidden pointer-events-none" 
+              className={`transition-all duration-500 ease-out transform ${promptExecuted
+                  ? "opacity-0 scale-95 -translate-y-4 max-h-0 overflow-hidden pointer-events-none"
                   : "opacity-100 scale-100 translate-y-0 max-h-screen"
-              }`}
+                }`}
               style={{
                 transitionProperty: 'opacity, transform, max-height',
               }}
@@ -202,57 +321,49 @@ const HeroSection = () => {
             </div>
 
             {/* Loading State */}
-            {isLoading && (
-              <div 
-                className="space-y-6 animate-fade-in-up"
-                style={{
-                  animation: 'fadeInUp 0.6s ease-out forwards',
-                }}
-              >
-                <div className="text-center">
-                  <div className="inline-flex items-center gap-2 text-purple-600 font-medium">
-                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-purple-600 border-t-transparent"></div>
-                    Generating execution plan...
-                  </div>
-                </div>
-                <div className="space-y-4 pt-4">
-                  {[0, 1, 2].map((index) => (
-                    <div 
-                      key={index}
-                      className="animate-pulse"
-                      style={{
-                        animationDelay: `${index * 150}ms`,
-                        animationDuration: '1.5s',
-                      }}
-                    >
-                      {index === 0 ? (
-                        <div className="h-24 bg-gradient-to-r from-slate-100 via-slate-200 to-slate-100 bg-size-200 bg-pos-0 animate-shimmer rounded-xl"></div>
-                      ) : (
-                        <div className={`h-4 bg-gradient-to-r from-slate-100 via-slate-200 to-slate-100 bg-size-200 bg-pos-0 animate-shimmer rounded-full ${
-                          index === 1 ? 'w-3/4' : index === 2 ? 'w-full' : 'w-5/6'
-                        }`}></div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
+            {isLoading && loadingState && (
+              <LoadingComponent loadingState={loadingState} />
             )}
 
             {/* Plan Display State */}
             {plan && plan.length > 0 && !finalOutputData && !isLoading && (
-              <div 
+              <div
                 className="bg-slate-50/50 rounded-2xl p-6 border border-slate-200 backdrop-blur-sm"
                 style={{
                   animation: 'fadeInUp 0.6s ease-out forwards',
                 }}
               >
                 <Plans plans={plan} onReject={resetState} onAccept={onAccept} />
+
+                {/* Summary and Actions */}
+                {plan.length && (<div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-5 mt-8 space-y-4 border border-purple-200">
+                  <div className="flex justify-between items-center">
+                    <p className="text-lg font-semibold text-slate-700">Total Estimated Cost:</p>
+                    {totalAmount && <p className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
+                      {totalAmount.toFixed(4)} ETH
+                    </p>}
+                  </div>
+                  <div className="w-full flex justify-between items-center gap-x-4 pt-2">
+                    <Button
+                      onClick={onReject}
+                      className="w-full py-3 px-4 bg-white text-slate-700 font-bold rounded-lg shadow-sm border border-slate-300 hover:bg-slate-50 transition-all duration-200"
+                    >
+                      Reject
+                    </Button>
+                    <Button
+                      onClick={onAccept}
+                      className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-lg shadow-lg hover:shadow-purple-200/80 transform transition-all duration-200"
+                    >
+                      Confirm & Execute
+                    </Button>
+                  </div>
+                </div>)}
               </div>
             )}
 
             {/* Final Output State */}
             {finalOutputData && finalOutputData.length > 0 && (
-              <div 
+              <div
                 className="bg-slate-50/50 rounded-2xl p-6 border border-slate-200 backdrop-blur-sm"
                 style={{
                   animation: 'fadeInUp 0.6s ease-out forwards',

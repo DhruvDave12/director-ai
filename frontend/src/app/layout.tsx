@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from 'next/headers'
 import { Geist, Geist_Mono } from "next/font/google";
+import { Toaster } from "@/components/ui/sonner"
 import ContextProvider from '@/context'
 import "./globals.css";
 
@@ -34,6 +35,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ContextProvider cookies={cookies}>{children}</ContextProvider>
+        <Toaster position="top-right" richColors />
       </body>
     </html>
   );

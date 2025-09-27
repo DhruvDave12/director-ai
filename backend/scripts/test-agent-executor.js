@@ -120,6 +120,7 @@ async function testDummyResponseGeneration() {
         { agentName: "data_analyzer_agent", agentAddress: "0x456", agentPrompt: "Test data analysis", cost: 0.002 },
         { agentName: "seo_optimization_agent", agentAddress: "0x789", agentPrompt: "Test SEO optimization", cost: 0.003 },
         { agentName: "github_code_agent", agentAddress: "0xabc", agentPrompt: "Test code generation", cost: 0.004 },
+        { agentName: "reddit_sentiment_agent", agentAddress: "0xdef", agentPrompt: "Test reddit sentiment analysis", cost: 0.001 },
         { agentName: "unknown_agent", agentAddress: "0xdef", agentPrompt: "Test unknown agent", cost: 0.005 }
     ];
 
@@ -157,4 +158,4 @@ async function runAllTests() {
 }
 
 // Run the tests
-runAllTests().catch(console.error); 
+runAllTests().catch(console.error);
