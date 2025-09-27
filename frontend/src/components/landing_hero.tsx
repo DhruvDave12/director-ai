@@ -7,6 +7,7 @@ import { useAppKit } from "@reown/appkit/react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Lottie from "lottie-react";
+import Link from "next/link";
 
 export default function LandingHero() {
 
@@ -128,6 +129,17 @@ export default function LandingHero() {
                                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
                                 </span>
                             </Button>
+
+                            <Link
+                                href={"/agents"}
+                                className="ml-6 group relative overflow-hidden text-white font-semibold text-lg px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-300 border-0 min-w-[180px] flex items-center justify-center"
+                            >
+                                <span className="relative z-10 flex items-center gap-2">
+                                    <Zap className="w-5 h-5" />
+                                    Agents
+                                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+                                </span>
+                            </Link>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-2xl mb-12">
                             <div className="text-left p-4 bg-gray-900/30 backdrop-blur-sm rounded-xl border border-gray-700/50 hover:border-purple-500/50 transition-all duration-300">

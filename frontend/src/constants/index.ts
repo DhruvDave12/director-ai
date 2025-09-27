@@ -1,4 +1,5 @@
 import { baseSepolia, polygonAmoy, sepolia } from "viem/chains";
+import { IAgent } from "../../types";
 
 
 
@@ -24,6 +25,34 @@ export const userStories = [
         "examplePrompt": "Build a sales dashboard that visualizes key metrics such as revenue, conversion rates, and customer acquisition costs using data from my CRM system"
     }
 ]
+
+export const FALLBACK_AGENTS: IAgent[] = [
+  {
+    name: "Content Generator",
+    description: "Creates high-quality content including articles, blogs, and marketing copy with SEO optimization."
+  },
+  {
+    name: "Data Analyst",
+    description: "Processes and analyzes large datasets, generates insights, and creates comprehensive reports."
+  },
+  {
+    name: "Image Creator",
+    description: "Generates stunning visuals, logos, and artwork using advanced AI image generation models."
+  },
+  {
+    name: "Code Assistant",
+    description: "Writes, reviews, and optimizes code across multiple programming languages and frameworks."
+  },
+  {
+    name: "Research Agent",
+    description: "Conducts in-depth research on any topic and compiles detailed, fact-checked reports."
+  },
+  {
+    name: "Social Media Manager",
+    description: "Creates engaging social media content, schedules posts, and manages online presence."
+  }
+];
+
 
 
 export function getTokenAddress(chainId: number | undefined) {

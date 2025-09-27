@@ -66,3 +66,9 @@ export interface IFinalOutput {
   results: IAgentResult[];
   txHash?: string;
 }
+
+
+export interface IAgent {
+  name: string;
+  description: string;
+}
