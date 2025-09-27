@@ -29,32 +29,33 @@ if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
 const agents = [
   {
     id: uuidv4(),
-    name: "Web Scraper Agent",
-    description: "Specialises in scraping data from websites", 
+    name: "web_scraper_agent",
+    description: "Specialises in scraping data from websites",
     address: "0x34D5a31c1b74ff7d2682743708a5C6Ac3CB30627",
-    costPerOutputToken: 0.000001 // $0.000001 per output token
+    costPerOutputToken: 0.000001, // $0.000001 per output token
   },
   {
     id: uuidv4(),
-    name: "Data Analyzer Agent",
+    name: "data_analyzer_agent",
     description: "Specialises in extracting meaningful information from data",
-    address: "0x53185299C535286c57e2338e35ebd8A56C9Ab2Dd", 
-    costPerOutputToken: 0.000002 // $0.000002 per output token
+    address: "0x53185299C535286c57e2338e35ebd8A56C9Ab2Dd",
+    costPerOutputToken: 0.000002, // $0.000002 per output token
   },
   {
     id: uuidv4(),
-    name: "SEO Optimization Agent",
+    name: "seo_optimization_agent",
     description: "Specialises in suggesting seo optimisations",
     address: "0x2f7D95566BfAF09Ee5CA41765486181bdC827583",
-    costPerOutputToken: 0.000003 // $0.000003 per output token
+    costPerOutputToken: 0.000003, // $0.000003 per output token
   },
   {
     id: uuidv4(),
-    name: "GitHub Code Agent", 
-    description: "Specialises in writing and pushing code to a github repository",
+    name: "github_code_agent",
+    description:
+      "Specialises in writing and pushing code to a github repository via pull requests",
     address: "0xBe53bed7B566b5c5a11361664cf9eaE5bB18Ed9a",
-    costPerOutputToken: 0.000005 // $0.000005 per output token
-  }
+    costPerOutputToken: 0.000005, // $0.000005 per output token
+  },
 ];
 
 async function setupAgents() {
