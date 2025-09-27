@@ -2,6 +2,8 @@ import z from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { Redis } from "@upstash/redis";
 import dotenv from "dotenv";
+import { agentService } from "../agents/service.js";
+import { v4 as uuidv4 } from "uuid";
 
 dotenv.config();
 
@@ -39,17 +41,19 @@ const agentInputSchema = {
 
 async function getAllAgents(): Promise<Agent[]> {
   if (!redis) return [];
-  
+
   try {
     const keys = await redis.keys("AGENT_*");
     if (keys.length === 0) return [];
 
     const agentPromises = keys.map((key) => redis.get(key));
     const agentDataArray = await Promise.all(agentPromises);
-    
+
     return agentDataArray
       .filter((data) => data !== null)
-      .map((data) => typeof data === "string" ? JSON.parse(data) : data) as Agent[];
+      .map((data) =>
+        typeof data === "string" ? JSON.parse(data) : data
+      ) as Agent[];
   } catch (error) {
     console.error("❌ Error fetching agents:", error);
     return [];
@@ -67,15 +71,18 @@ function createAgentPrice(costPerOutputToken: number): string {
 
 export async function registerAgentTools(server: any) {
   const agents = await getAllAgents();
-  
+  console.log("🤖 Agents: ", agents);
+
   if (agents.length === 0) {
-    console.warn("⚠️ No agents found in Redis. Run: node backend/scripts/setup-agents.js setup");
+    console.warn(
+      "⚠️ No agents found in Redis. Run: node backend/scripts/setup-agents.js setup"
+    );
     return;
   }
 
   for (const agent of agents) {
     const toolName = `agent_${agent.address.toLowerCase()}`;
-    
+
     server.paidTool(
       toolName,
       agent.description,
@@ -85,22 +92,46 @@ export async function registerAgentTools(server: any) {
       {},
       async ({ prompt, agentID }: { prompt: string; agentID?: string }) => {
         const actualCost = calculateAgentCost(agent.costPerOutputToken);
+        if (!agentID) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: "Agent ID is required",
+              },
+            ],
+          };
+        }
+        const response = await agentService.executeAgent(
+          agentID,
+          {
+            payload: prompt,
+          },
+          {
+            requestId: uuidv4(),
+            timestamp: new Date(),
+            userId: "system-user",
+            sessionId: "system-sesh",
+          }
+        );
 
-        // TODO: Add actual agent response here
-        
+        console.log("🔍 Response:", response);
         return {
-          content: [{
-            type: "object",
-            data: {
-              name: agent.name,
-              address: agent.address,
-              inputLength: prompt.length,
-              actualCost: actualCost.toFixed(6),
-              costPerToken: agent.costPerOutputToken,
-              prompt: prompt.substring(0, 300) + (prompt.length > 300 ? "..." : ""),
-              // TODO: Add actual agent response here
+          content: [
+            {
+              type: "object",
+              data: {
+                name: agent.name,
+                address: agent.address,
+                inputLength: prompt.length,
+                actualCost: actualCost.toFixed(6),
+                costPerToken: agent.costPerOutputToken,
+                prompt:
+                  prompt.substring(0, 300) + (prompt.length > 300 ? "..." : ""),
+                response: response.data,
+              },
             },
-          }],
+          ],
         };
       }
     );

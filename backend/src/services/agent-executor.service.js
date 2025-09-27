@@ -258,4 +258,4 @@ class AgentExecutorService {
     }
 }
 
-module.exports = new AgentExecutorService(); 
+module.exports = new AgentExecutorService();
