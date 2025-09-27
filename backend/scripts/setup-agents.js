@@ -36,13 +36,6 @@ const agents = [
   },
   {
     id: uuidv4(),
-    name: "data_analyzer_agent",
-    description: "Specialises in extracting meaningful information from data",
-    address: "0x53185299C535286c57e2338e35ebd8A56C9Ab2Dd",
-    costPerOutputToken: 0.000002, // $0.000002 per output token
-  },
-  {
-    id: uuidv4(),
     name: "seo_optimization_agent",
     description: "Specialises in suggesting seo optimisations",
     address: "0x2f7D95566BfAF09Ee5CA41765486181bdC827583",
