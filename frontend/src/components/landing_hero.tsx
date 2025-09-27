@@ -1,8 +1,6 @@
 "use client";
-import Link from "next/link";
 import TypeWriterComponent from "typewriter-effect";
 import { Button } from "./ui/button";
-import { cn } from "@/lib/utils";
 import { ArrowRight, Sparkles, Zap, Bot, Star, Users, Shield } from "lucide-react";
 import { useAccount, useConnect } from "wagmi";
 import { useAppKit } from "@reown/appkit/react";
