@@ -29,6 +29,6 @@ export const agentPayHandler = createMcpPaidHandler(
     serverInfo: { name: "director-ai-agent-server", version: "1.0.0" },
   },
   {
-    maxDuration: 80000,
+    maxDuration: 800000000,
   }
 );

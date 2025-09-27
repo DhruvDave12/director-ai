@@ -80,6 +80,8 @@ export async function registerAgentTools(server: any) {
     return;
   }
 
+  console.log("[AGENT SERVER] 🔍 Registering agents: ", agents);
+
   for (const agent of agents) {
     // Note: This should be specifically the name
     const toolName = agent.name;
@@ -103,6 +105,7 @@ export async function registerAgentTools(server: any) {
             ],
           };
         }
+        console.log("[AGENT SERVER] 🔍 Executing agent: ", agentID);
         const response = await agentService.executeAgent(
           agentID,
           {
@@ -119,18 +122,22 @@ export async function registerAgentTools(server: any) {
         console.log("🔍 Response:", response);
         return {
           content: [
+            // {
+            //   type: "object",
+            //   data: {
+            //     name: agent.name,
+            //     address: agent.address,
+            //     inputLength: prompt.length,
+            //     actualCost: actualCost.toFixed(6),
+            //     costPerToken: agent.costPerOutputToken,
+            //     prompt:
+            //       prompt.substring(0, 300) + (prompt.length > 300 ? "..." : ""),
+            //     response: response.data,
+            //   },
+            // },
             {
-              type: "object",
-              data: {
-                name: agent.name,
-                address: agent.address,
-                inputLength: prompt.length,
-                actualCost: actualCost.toFixed(6),
-                costPerToken: agent.costPerOutputToken,
-                prompt:
-                  prompt.substring(0, 300) + (prompt.length > 300 ? "..." : ""),
-                response: response.data,
-              },
+              type: "text",
+              text: response.data,
             },
           ],
         };
