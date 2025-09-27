@@ -5,6 +5,12 @@ import { registerTestTools } from "../tools/test-tools.js";
 
 config();
 
+const agentFacilitatorUrl = process.env
+  .AGENT_FACILITATOR_URL as `${string}://${string}`;
+if (!agentFacilitatorUrl) {
+  throw new Error("AGENT_FACILITATOR_URL is not set");
+}
+
 export const agentPayHandler = createMcpPaidHandler(
   async (server) => {
     console.log("🔄 Registering agent tools...");
@@ -13,7 +19,7 @@ export const agentPayHandler = createMcpPaidHandler(
   },
   {
     facilitator: {
-      url: "https://facilitator.x402.rs",
+      url: agentFacilitatorUrl,
     },
     recipient: {
       "polygon-amoy": "0x3125c67180aBD9d59aCE1412c01B8d197306891d",
