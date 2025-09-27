@@ -25,6 +25,15 @@ const HeroSection = () => {
   const productName = "DIRECTOR.AI";
   const [promptExecuted, setPromptExecuted] = useState(false);
 
+  const getErrorMessage = async (response: Response): Promise<string> => {
+    try {
+      const errorData = await response.json();
+      return errorData.message || errorData.error || `Request failed with status: ${response.status}`;
+    } catch {
+      return `Request failed with status: ${response.status}`;
+    }
+  };
+
   const [isLoading, setIsLoading] = useState(false);
   const [finalOutputData, setFinalOutputData] = useState<
     IOutput[] | undefined
@@ -94,7 +103,8 @@ const HeroSection = () => {
         );
 
         if (!response.ok) {
-          throw new Error(`API request failed with status: ${response.status}`);
+          const errorMessage = await getErrorMessage(response);
+          throw new Error(errorMessage);
         }
 
         const data = await response.json();
@@ -103,14 +113,14 @@ const HeroSection = () => {
           setPlanResponse(data);
           setPlan(data.agentSequence);
         } else {
-          toast(data.message || "Failed to get a valid plan from the server.");
+          const errorMessage = data.message || data.error || "Failed to get a valid plan from the server.";
+          toast(errorMessage);
           setPromptExecuted(false); // Reset UI on failure
         }
       } catch (err) {
         console.error(err);
-        toast(
-          "An error occurred while processing your request. Please try again."
-        );
+        const errorMessage = err instanceof Error ? err.message : "An error occurred while processing your request. Please try again.";
+        toast(errorMessage);
         setPromptExecuted(false); // Reset UI on error
       } finally {
         setIsLoading(false);
@@ -179,21 +189,32 @@ const HeroSection = () => {
             }),
           }
         );
-        
+
         if (!response.ok) {
-          throw new Error(`API request failed with status: ${response.status}`);
+          const errorMessage = await getErrorMessage(response);
+          throw new Error(errorMessage);
         }
         const data = await response.json();
+
+        if (!data.success) {
+          const errorMessage = data.message || data.error || "Execution failed";
+          toast(errorMessage);
+          return;
+        }
+
         setExecuteResponse(data);
         console.log(data);
-
-
-      
     } catch (err) {
       console.error(err);
-      toast(
-        "An error occurred while processing your request. Please try again."
-      );
+      let errorMessage = "An error occurred while processing your request";
+
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === 'string') {
+        errorMessage = err;
+      }
+
+      toast(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -252,7 +273,7 @@ const HeroSection = () => {
           >
             <PromptInput
               value={prompt}
-              onChange={(e: any) => setPrompt(e.target.value)}
+              onChange={setPrompt}
               onSend={handleSendPrompt}
               loading={isLoading}
               placeholder="Describe your AI workflow needs..."
