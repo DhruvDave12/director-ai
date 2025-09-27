@@ -40,32 +40,12 @@ const HeroSection = () => {
   };
 
   const [isLoading, setIsLoading] = useState(false);
-  const [finalOutputData, setFinalOutputData] = useState<IOutput[] | undefined>(undefined);
   const [plan, setPlan] = useState<IPlan[] | undefined>(undefined);
   const [txHash, setTxHash] = useState<string | undefined>(undefined);
   const [planResponse, setPlanResponse] = useState<any>(undefined);
   const [executeResponse, setExecuteResponse] = useState<any>(undefined);
 
   const totalAmount = plan?.reduce((acc, plan) => acc + plan.cost, 0);
-
-  const {
-    data: hash,
-    isPending,
-    sendTransaction
-  } = useSendTransaction()
-
-  async function submit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    const formData = new FormData(e.target as HTMLFormElement)
-    const to = formData.get('address') as `0x${string}`
-    const value = formData.get('value') as string
-    sendTransaction({ to, value: parseEther(value) })
-  }
-
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({
-      hash,
-    })
 
   useEffect(() => {
     if (!isConnected) {
@@ -174,6 +154,8 @@ const HeroSection = () => {
         hash: hash,
       });
 
+      setTxHash(hash);
+
       const response = await fetch(
         "https://director-ai-production.up.railway.app/api/jobs/execute",
         {
@@ -229,7 +211,7 @@ const HeroSection = () => {
     setIsLoading(false);
     setLoadingState(null);
     setPlan(undefined);
-    setFinalOutputData(undefined);
+    setExecuteResponse(undefined);
     setPrompt("");
   };
 
@@ -297,7 +279,7 @@ const HeroSection = () => {
                 transitionProperty: 'opacity, transform, max-height',
               }}
             >
-              {!isLoading && !plan && !finalOutputData && (
+              {!isLoading && !plan && !executeResponse && (
                 <div className="text-center mb-8">
                   <p className="text-sm text-slate-500 mb-4">
                     Try these examples:
@@ -326,7 +308,7 @@ const HeroSection = () => {
             )}
 
             {/* Plan Display State */}
-            {plan && plan.length > 0 && !finalOutputData && !isLoading && (
+            {plan && plan.length > 0 && !executeResponse && !isLoading && (
               <div
                 className="bg-slate-50/50 rounded-2xl p-6 border border-slate-200 backdrop-blur-sm"
                 style={{
@@ -362,14 +344,14 @@ const HeroSection = () => {
             )}
 
             {/* Final Output State */}
-            {finalOutputData && finalOutputData.length > 0 && (
+            {executeResponse && executeResponse.length > 0 && (
               <div
                 className="bg-slate-50/50 rounded-2xl p-6 border border-slate-200 backdrop-blur-sm"
                 style={{
                   animation: 'fadeInUp 0.6s ease-out forwards',
                 }}
               >
-                <FinalOutput output={finalOutputData} txHash={txHash} />
+                <FinalOutput output={executeResponse} txHash={txHash} />
               </div>
             )}
           </div>
