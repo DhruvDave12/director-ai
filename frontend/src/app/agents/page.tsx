@@ -1,10 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAccount } from "wagmi";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 import { IAgent } from "../../../types";
 import { FALLBACK_AGENTS } from "@/constants";
 

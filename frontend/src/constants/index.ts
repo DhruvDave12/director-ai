@@ -1,4 +1,4 @@
-import { baseSepolia, polygonAmoy, sepolia } from "viem/chains";
+import { arbitrum, arbitrumSepolia, baseSepolia, polygonAmoy, sepolia } from "viem/chains";
 import { IAgent } from "../../types";
 
 
@@ -58,12 +58,24 @@ export const FALLBACK_AGENTS: IAgent[] = [
 export function getTokenAddress(chainId: number | undefined) {
     switch (chainId) {
         case polygonAmoy.id: // polygon amoy
-            return '0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582'; // MATIC
+            return '0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582'; // USDC
         case sepolia.id: // sepolia
-            return '0xCaC524BcA292aaade2DF8A05cC58F0a65B1B3bB9'; // Sepolia ETH
+            return '0xCaC524BcA292aaade2DF8A05cC58F0a65B1B3bB9'; // USDC
         case baseSepolia.id: // base sepolia
-            return '0x036CbD53842c5426634e7929541eC2318f3dCF7e'; // Base Sepolia ETH
+            return '0x036CbD53842c5426634e7929541eC2318f3dCF7e'; // USDC
+        case arbitrumSepolia.id: // arbitrum sepolia
+            return '0xc6006A919685EA081697613373C50B6b46cd6F11' // PyUSD
         default:
             return `0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582`;
+    }
+}
+
+
+export const getTokenSymbol = (chainId: number | undefined) => {
+    switch (chainId) {
+        case arbitrumSepolia.id:
+            return 'PyUSD';
+        default:
+            return 'USDC';
     }
 }

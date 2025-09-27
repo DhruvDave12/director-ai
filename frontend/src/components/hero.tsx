@@ -5,7 +5,7 @@ import { useAccount } from "wagmi";
 import FinalOutput from "./final_output";
 import Plans from "./plan_render";
 import {  IFinalOutput, IPlan } from "../../types";
-import { getTokenAddress, userStories } from "@/constants";
+import { getTokenAddress, getTokenSymbol, userStories } from "@/constants";
 import PromptInput from "./prompt_input";
 import { useRouter } from "next/navigation";
 import { erc20Abi, parseUnits } from "viem";
@@ -29,16 +29,7 @@ const HeroSection = () => {
   // State to manage the loading state
   const [loadingState, setLoadingState] = useState<'plan' | 'execute' | 'transaction' | null>(null);
   const chainId = getChainId(config)
-
-  const getErrorMessage = async (response: Response): Promise<string> => {
-    try {
-      const errorData = await response.json();
-      return errorData.message || errorData.error || `Request failed with status: ${response.status}`;
-    } catch {
-      return `Request failed with status: ${response.status}`;
-    }
-  };
-
+  const tokenSymbol = getTokenSymbol(chainId);
   const [isLoading, setIsLoading] = useState(false);
   const [plan, setPlan] = useState<IPlan[] | undefined>(undefined);
   const [planResponse, setPlanResponse] = useState<any>(undefined);
@@ -65,6 +56,15 @@ const HeroSection = () => {
 
     return () => clearInterval(typingInterval);
   }, []);
+
+  const getErrorMessage = async (response: Response): Promise<string> => {
+    try {
+      const errorData = await response.json();
+      return errorData.message || errorData.error || `Request failed with status: ${response.status}`;
+    } catch {
+      return `Request failed with status: ${response.status}`;
+    }
+  };
 
   const handleSendPrompt = async () => {
     if (prompt.trim()) {
@@ -316,7 +316,7 @@ const HeroSection = () => {
                   <div className="flex justify-between items-center">
                     <p className="text-lg font-semibold text-slate-700">Total Estimated Cost:</p>
                     {totalAmount && <p className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
-                      {totalAmount.toFixed(4)} ETH
+                      {totalAmount.toFixed(4)} {tokenSymbol}
                     </p>}
                   </div>
                   <div className="w-full flex justify-center items-center gap-x-4 pt-2">

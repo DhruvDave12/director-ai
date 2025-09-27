@@ -4,6 +4,7 @@ import { wagmiAdapter, projectId } from "@/config";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createAppKit } from "@reown/appkit/react";
 import {
+  arbitrumSepolia,
   baseSepolia,
   polygonAmoy,
   type AppKitNetwork,
@@ -30,8 +31,8 @@ const metadata = {
 const modal = createAppKit({
   adapters: [wagmiAdapter],
   projectId,
-  networks: [baseSepolia, polygonAmoy],
-  defaultNetwork: polygonAmoy,
+  networks: [baseSepolia, polygonAmoy,arbitrumSepolia],
+  defaultNetwork: baseSepolia as AppKitNetwork,
   metadata: metadata,
   features: {
     analytics: true, // Optional - defaults to your Cloud configuration
