@@ -138,6 +138,24 @@ async function testFreeTool(client) {
   }
 }
 
+async function testContentAnalysisAgent(client) {
+  console.log("🆓 Testing content analysis agent...");
+  try {
+    const response = await client.callTool({
+      name: "test_free_tool",
+      arguments: {
+        prompt: "Hello from MCP client test!",
+        agentID: "content_analysis_agent"
+      },
+    });
+    console.log("✅ Content analysis agent response:", JSON.stringify(response, null, 2));
+    return response;
+  } catch (error) {
+    console.error("❌ Error calling content analysis agent:", error);
+    return null;
+  }
+}
+
 async function testPaidTool(client) {
   console.log("💰 Testing paid weather tool...");
 
@@ -183,7 +201,7 @@ async function runTests() {
     // await testFreeTool(client);
     // await testSEOAdvisorChain(client);
 
-    await testImageGenerationAgent(client);
+    await testContentAnalysisAgent(client);
 
     // Test paid tool
     await testPaidTool(client);

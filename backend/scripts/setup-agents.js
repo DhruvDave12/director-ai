@@ -36,13 +36,6 @@ const agents = [
   },
   {
     id: uuidv4(),
-    name: "data_analyzer_agent",
-    description: "Specialises in extracting meaningful information from data",
-    address: "0x53185299C535286c57e2338e35ebd8A56C9Ab2Dd",
-    costPerOutputToken: 0.000002, // $0.000002 per output token
-  },
-  {
-    id: uuidv4(),
     name: "seo_optimization_agent",
     description: "Specialises in suggesting seo optimisations",
     address: "0x2f7D95566BfAF09Ee5CA41765486181bdC827583",
@@ -70,6 +63,13 @@ const agents = [
     description: "Specialises in generating images from text prompts",
     address: "0x93b0963E157359E77381270361692589062b162D",
     costPerOutputToken: 0.000001, // $0.000001 per output token
+  },
+  {
+    id: uuidv4(),
+    name: "content_analysis_agent",
+    description: "Specialises in analysing content and providing insights",
+    address: "0x1734424505540188195351964754846154681093",
+    costPerOutputToken: 0.000002, // $0.000001 per output token
   },
 ];
 
