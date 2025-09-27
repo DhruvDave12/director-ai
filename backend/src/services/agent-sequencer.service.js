@@ -64,9 +64,8 @@ class AgentSequencerService {
    * @param {number} costPerOutputToken - Cost per output token for the agent
    * @returns {number} Calculated cost
    */
-  calculateAgentCost(input, costPerOutputToken) {
-    const inputLength = input.length;
-    return inputLength * 10 * costPerOutputToken;
+  calculateAgentCost(costPerOutputToken) {
+    return 1000 * costPerOutputToken;
   }
 
   /**
@@ -171,7 +170,7 @@ IMPORTANT:
           };
         }
 
-        const cost = this.calculateAgentCost(sequenceItem.agentPrompt, agent.costPerOutputToken);
+        const cost = this.calculateAgentCost(agent.costPerOutputToken);
         
         return {
           ...sequenceItem,

@@ -56,8 +56,8 @@ async function getAllAgents(): Promise<Agent[]> {
   }
 }
 
-function calculateAgentCost(prompt: string, costPerOutputToken: number): number {
-  return prompt.length * 10 * costPerOutputToken;
+function calculateAgentCost(costPerOutputToken: number): number {
+  return 1000 * costPerOutputToken;
 }
 
 function createAgentPrice(costPerOutputToken: number): string {
@@ -84,7 +84,7 @@ export async function registerAgentTools(server: any) {
       agentInputSchema,
       {},
       async ({ prompt, agentID }: { prompt: string; agentID?: string }) => {
-        const actualCost = calculateAgentCost(prompt, agent.costPerOutputToken);
+        const actualCost = calculateAgentCost(agent.costPerOutputToken);
 
         // TODO: Add actual agent response here
         
