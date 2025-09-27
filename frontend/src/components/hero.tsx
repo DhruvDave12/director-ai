@@ -1,14 +1,14 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
-import { useAccount, useSendTransaction, useWaitForTransactionReceipt, WagmiConfig } from "wagmi";
+import {  useEffect, useState } from "react";
+import { useAccount } from "wagmi";
 import FinalOutput from "./final_output";
 import Plans from "./plan_render";
-import { IOutput, IPlan } from "../../types";
+import {  IFinalOutput, IPlan } from "../../types";
 import { getTokenAddress, userStories } from "@/constants";
 import PromptInput from "./prompt_input";
 import { useRouter } from "next/navigation";
-import { erc20Abi, parseEther, parseUnits } from "viem";
+import { erc20Abi, parseUnits } from "viem";
 import { toast } from "sonner";
 import {
   writeContract,
@@ -41,7 +41,6 @@ const HeroSection = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [plan, setPlan] = useState<IPlan[] | undefined>(undefined);
-  const [txHash, setTxHash] = useState<string | undefined>(undefined);
   const [planResponse, setPlanResponse] = useState<any>(undefined);
   const [executeResponse, setExecuteResponse] = useState<any>(undefined);
 
@@ -115,6 +114,7 @@ const HeroSection = () => {
     try {
       setIsLoading(true);
       setLoadingState('transaction');
+      setPromptExecuted(true);
       if (totalAmount === undefined || totalAmount === 0) {
         toast("Invalid total amount for transaction.");
         setIsLoading(false);
@@ -154,9 +154,6 @@ const HeroSection = () => {
       await waitForTransactionReceipt(config, {
         hash: hash,
       });
-
-      setTxHash(hash);
-
       setLoadingState('execute');
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_SERVER_URL}/api/jobs/execute`,
@@ -199,6 +196,7 @@ const HeroSection = () => {
       }
 
       toast(errorMessage);
+      setPromptExecuted(false);
     } finally {
       setIsLoading(false);
       setLoadingState(null);
@@ -328,16 +326,16 @@ const HeroSection = () => {
                       {totalAmount.toFixed(4)} ETH
                     </p>}
                   </div>
-                  <div className="w-full flex justify-between items-center gap-x-4 pt-2">
+                  <div className="w-full flex justify-center items-center gap-x-4 pt-2">
                     <Button
                       onClick={onReject}
-                      className="w-full py-3 px-4 bg-white text-slate-700 font-bold rounded-lg shadow-sm border border-slate-300 hover:bg-slate-50 transition-all duration-200"
+                      className="w-[200px] py-3 px-4 bg-white text-slate-700 font-bold rounded-lg shadow-sm border border-slate-300 hover:bg-slate-50 transition-all duration-200"
                     >
                       Reject
                     </Button>
                     <Button
                       onClick={onAccept}
-                      className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-lg shadow-lg hover:shadow-purple-200/80 transform transition-all duration-200"
+                      className="w-[200px] py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-lg shadow-lg hover:shadow-purple-200/80 transform transition-all duration-200"
                     >
                       Confirm & Execute
                     </Button>
@@ -354,7 +352,7 @@ const HeroSection = () => {
                   animation: 'fadeInUp 0.6s ease-out forwards',
                 }}
               >
-                <FinalOutput output={executeResponse} txHash={txHash} />
+                <FinalOutput output={executeResponse} />
               </div>
             )}
           </div>

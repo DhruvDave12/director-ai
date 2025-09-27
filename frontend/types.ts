@@ -26,3 +26,43 @@ export interface IOutput {
   score: number;
   agentPrice: number;
 }
+
+
+export interface IAgentResult {
+  agentAddress: string;
+  agentName: string;
+  executionCost: number;
+  timestamp: string;
+  status: string;
+  result: {
+    _meta?: {
+      "x402/payment-response"?: {
+        success: boolean;
+        transaction: string;
+        network: string;
+        payer: string;
+      };
+    };
+    content: Array<{
+      type: string;
+      text: string;
+    }>;
+  };
+  inputPrompt: string;
+}
+
+export interface IExecutionSummary {
+  totalAgents: number;
+  successfulAgents: number;
+  failedAgents: number;
+  totalCost: number;
+}
+
+export interface IFinalOutput {
+  jobId: string;
+  status: string;
+  timestamp: string;
+  executionSummary: IExecutionSummary;
+  results: IAgentResult[];
+  txHash?: string;
+}

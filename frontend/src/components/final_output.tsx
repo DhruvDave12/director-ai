@@ -1,46 +1,7 @@
 import Link from "next/link";
 import { useState } from "react";
-
-interface IExecutionResult {
-  agentName: string;
-  status: 'success' | 'failed';
-  result?: string;
-  error?: string;
-  executionTime?: number;
-  executionCost: number;
-}
-
-interface IExecutionSummary {
-  totalAgents: number;
-  successfulAgents: number;
-  failedAgents: number;
-  totalCost: number;
-}
-
-interface IFinalOutput {
-  jobId: string;
-  status: 'completed' | 'partial_failure';
-  timestamp: string;
-  executionSummary: IExecutionSummary;
-  results: IExecutionResult[];
-  txHash?: string;
-}
-
-// Success checkmark icon
-const CheckIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="20,6 9,17 4,12"></polyline>
-  </svg>
-);
-
-// Warning icon for partial failures
-const WarningIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
-    <path d="M12 9v4"/>
-    <path d="m12 17 .01 0"/>
-  </svg>
-);
+import { Button } from "./ui/button";
+import { IFinalOutput } from "../../types";
 
 // External link icon
 const ExternalLinkIcon = () => (
@@ -79,45 +40,25 @@ const CollapseIcon = () => (
   </svg>
 );
 
-// Success/Error badge
-const StatusBadge = ({ status }: { status: 'success' | 'failed' }) => (
-  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-    status === 'success' 
-      ? 'bg-green-100 text-green-800 border border-green-200' 
-      : 'bg-red-100 text-red-800 border border-red-200'
-  }`}>
-    {status === 'success' ? '✓' : '✗'} {status}
-  </span>
-);
 
-const FinalOutput = ({ output, txHash }: { output: IFinalOutput; txHash?: string }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [copySuccess, setCopySuccess] = useState(false);
-  const [selectedResult, setSelectedResult] = useState<number | null>(null);
+const FinalOutput = ({ output }: { output: IFinalOutput }) => {
+  const [expandedAgents, setExpandedAgents] = useState<{ [key: string]: boolean }>({});
+  const [copySuccess, setCopySuccess] = useState<{ [key: string]: boolean }>({});
+  
+  const toggleAgentExpansion = (agentAddress: string) => {
+    setExpandedAgents(prev => ({
+      ...prev,
+      [agentAddress]: !prev[agentAddress]
+    }));
+  };
 
-  const isPartialFailure = output.status === 'partial_failure';
-  const successRate = Math.round((output.executionSummary.successfulAgents / output.executionSummary.totalAgents) * 100);
-
-  const combinedResults = output.results
-    .filter(result => result.status === 'success' && result.result)
-    .map(result => {
-      if (typeof result.result === 'string') {
-        return `${result.agentName}: ${result.result}`;
-      }
-      return `${result.agentName}: ${JSON.stringify(result.result, null, 2)}`;
-    })
-    .join('\n\n');
-
-  const shouldShowExpandButton = combinedResults.length > 500;
-  const displayText = shouldShowExpandButton && !isExpanded 
-    ? combinedResults.slice(0, 500) + "..."
-    : combinedResults;
-
-  const handleCopy = async () => {
+  const handleCopy = async (text: string, agentAddress: string) => {
     try {
-      await navigator.clipboard.writeText(combinedResults);
-      setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), 2000);
+      await navigator.clipboard.writeText(text);
+      setCopySuccess(prev => ({ ...prev, [agentAddress]: true }));
+      setTimeout(() => {
+        setCopySuccess(prev => ({ ...prev, [agentAddress]: false }));
+      }, 2000);
     } catch (err) {
       console.error('Failed to copy text: ', err);
     }
@@ -127,15 +68,30 @@ const FinalOutput = ({ output, txHash }: { output: IFinalOutput; txHash?: string
     return `${hash.slice(0, 6)}...${hash.slice(-6)}`;
   };
 
+  const formatAgentName = (name: string) => {
+    return name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
+
   const formatTimestamp = (timestamp: string) => {
     return new Date(timestamp).toLocaleString();
   };
 
-  const getEstimatedTime = () => {
-    const totalResults = output.results.reduce((acc, result) => {
-      return acc + (result.executionTime || 0);
-    }, 0);
-    return totalResults > 0 ? `${totalResults.toFixed(1)}s` : `${Math.ceil(combinedResults.length / 100)}s`;
+  const shouldShowExpandButton = (text: string) => text?.length > 500;
+
+  const getDisplayText = (text: string, isExpanded: boolean) => {
+    return shouldShowExpandButton(text) && !isExpanded 
+      ? text.slice(0, 500) + "..."
+      : text || "";
+  };
+
+  const getAgentIcon = (agentName: string) => {
+    if (agentName.includes('scraper') || agentName.includes('web')) return '🕷️';
+    if (agentName.includes('seo') || agentName.includes('optimization')) return '📈';
+    if (agentName.includes('github') || agentName.includes('code')) return '💻';
+    if (agentName.includes('email') || agentName.includes('outreach')) return '✉️';
+    if (agentName.includes('social') || agentName.includes('media')) return '📱';
+    if (agentName.includes('writer') || agentName.includes('content')) return '✍️';
+    return '🤖';
   };
 
   return (
@@ -145,213 +101,179 @@ const FinalOutput = ({ output, txHash }: { output: IFinalOutput; txHash?: string
         animation: 'fadeInUp 0.6s ease-out forwards',
       }}
     >
-      {/* Success/Warning Header */}
+      {/* Success Header */}
       <div className="text-center space-y-4">
-        <div className={`w-16 h-16 mx-auto ${
-          isPartialFailure 
-            ? 'bg-gradient-to-r from-yellow-500 to-orange-500' 
-            : 'bg-gradient-to-r from-green-500 to-emerald-500'
-        } rounded-full flex items-center justify-center shadow-lg`}>
-          {isPartialFailure ? <WarningIcon /> : <CheckIcon />}
-        </div>
         <div>
-          <h2 className="text-3xl font-black text-slate-800">
-            {isPartialFailure ? 'Execution Completed with Issues' : 'Execution Complete!'}
-          </h2>
-          <p className="text-slate-600 mt-2">
-            {isPartialFailure 
-              ? `${output.executionSummary.successfulAgents} of ${output.executionSummary.totalAgents} agents completed successfully.`
-              : 'The full workflow has been successfully executed.'
-            }
-          </p>
+          <h2 className="text-3xl font-black text-slate-800">Execution Complete!</h2>
+          <p className="text-slate-600 mt-2">Your task has been successfully executed.</p>
         </div>
       </div>
 
-      {/* Job Details */}
-      <div className="bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl p-4 border border-slate-200">
+      {/* Job Information */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <p className="text-sm font-semibold text-slate-700 mb-1">Job ID</p>
             <p className="font-mono text-slate-600 text-sm">{output.jobId}</p>
           </div>
           <div>
-            <p className="text-sm font-semibold text-slate-700 mb-1">Completed</p>
+            <p className="text-sm font-semibold text-slate-700 mb-1">Completed At</p>
             <p className="text-slate-600 text-sm">{formatTimestamp(output.timestamp)}</p>
           </div>
         </div>
       </div>
 
-      {/* Transaction Hash */}
-      {txHash && (
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-semibold text-slate-700 mb-1">Transaction Hash</p>
-              <p className="font-mono text-slate-600 text-sm">{formatTxHash(txHash)}</p>
+      <div className="bg-slate-50/50 rounded-xl border border-slate-200 backdrop-blur-sm shadow-sm overflow-hidden">
+        <div className="bg-white/40 px-6 py-4 border-b border-slate-200">
+          <h3 className="text-lg font-bold text-slate-800">Execution Summary</h3>
+        </div>
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="text-center p-4 bg-white/60 rounded-lg border border-slate-200 shadow-sm">
+              <p className="text-2xl font-black text-slate-700">{output.executionSummary.totalAgents}</p>
+              <p className="text-sm text-slate-600 font-medium">Total Agents</p>
             </div>
-            <Link 
-              href={`https://amoy.polygonscan.com/tx/${txHash}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105"
-            >
-              View on Polygonscan
-              <ExternalLinkIcon />
-            </Link>
+            <div className="text-center p-4 bg-white/60 rounded-lg border border-slate-200 shadow-sm">
+              <p className="text-2xl font-black text-purple-600">{output.executionSummary.successfulAgents}</p>
+              <p className="text-sm text-slate-600 font-medium">Successful</p>
+            </div>
+            <div className="text-center p-4 bg-white/60 rounded-lg border border-slate-200 shadow-sm">
+              <p className="text-2xl font-black text-slate-500">{output.executionSummary.failedAgents}</p>
+              <p className="text-sm text-slate-600 font-medium">Failed</p>
+            </div>
+            <div className="text-center p-4 bg-white/60 rounded-lg border border-slate-200 shadow-sm">
+              <p className="text-2xl font-black text-pink-600">${output.executionSummary.totalCost.toFixed(3)}</p>
+              <p className="text-sm text-slate-600 font-medium">Total Cost</p>
+            </div>
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Agent Results Overview */}
-      {output.results.length > 0 && (
-        <div className="bg-white/60 backdrop-blur-sm rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-6 py-4 border-b border-slate-200">
-            <h3 className="text-lg font-bold text-slate-800">Agent Execution Results</h3>
-          </div>
-          <div className="p-6">
-            <div className="space-y-3">
-              {output.results.map((result, index) => (
-                <div 
-                  key={index}
-                  className={`p-4 rounded-lg border cursor-pointer transition-all duration-200 hover:shadow-md ${
-                    result.status === 'success' 
-                      ? 'bg-green-50 border-green-200 hover:bg-green-100' 
-                      : 'bg-red-50 border-red-200 hover:bg-red-100'
-                  } ${selectedResult === index ? 'ring-2 ring-purple-500' : ''}`}
-                  onClick={() => setSelectedResult(selectedResult === index ? null : index)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <h4 className="font-semibold text-slate-800">{result.agentName}</h4>
-                      <StatusBadge status={result.status} />
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                      {result.executionTime && (
-                        <span>{result.executionTime.toFixed(1)}s</span>
-                      )}
-                      <span>{result.executionCost.toFixed(4)} ETH</span>
+      {/* Agent Results */}
+      <div className="space-y-4">
+        {output.results.map((agent, index) => {
+          const isExpanded = expandedAgents[agent.agentAddress];
+          const agentText = agent.result.content?.[0]?.text || '';
+          const displayText = getDisplayText(agentText, isExpanded);
+          const hasCopySuccess = copySuccess[agent.agentAddress];
+          
+          return (
+            <div key={agent.agentAddress} className="bg-white/60 backdrop-blur-sm rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              {/* Agent Header */}
+              <div className="bg-gradient-to-r from-gray-50 to-slate-50 px-6 py-4 border-b border-slate-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{getAgentIcon(agent.agentName)}</span>
+                    <div>
+                      <h4 className="text-lg font-bold text-slate-800">{formatAgentName(agent.agentName)}</h4>
+                      <p className="text-sm text-slate-600">Agent #{index + 1} • {formatTimestamp(agent.timestamp)}</p>
                     </div>
                   </div>
-                  
-                  {selectedResult === index && (
-                    <div className="mt-3 pt-3 border-t border-slate-200">
-                      {result.status === 'success' ? (
-                        <div className="prose prose-sm max-w-none">
-                          <pre className="bg-white p-3 rounded border text-sm overflow-x-auto">
-                            {typeof result.result === 'string' ? result.result : JSON.stringify(result.result, null, 2)}
-                          </pre>
-                        </div>
-                      ) : (
-                        <div className="text-red-700 bg-red-100 p-3 rounded border">
-                          <strong>Error:</strong> {result.error || 'Unknown error occurred'}
-                        </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      agent.status === 'completed' 
+                        ? 'bg-green-100 text-green-700' 
+                        : 'bg-red-100 text-red-700'
+                    }`}>
+                      {agent.status}
+                    </span>
+                    <span className="text-sm text-slate-600">${agent.executionCost.toFixed(3)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Agent Content */}
+              <div className="p-6">
+                {/* Input Prompt */}
+                <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <p className="text-sm font-semibold text-gray-700 mb-1">Input Prompt:</p>
+                  <p className="text-sm text-gray-600">{agent.inputPrompt}</p>
+                </div>
+
+                {/* Transaction Info */}
+                {agent.result._meta?.["x402/payment-response"] && (
+                  <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-blue-700 mb-1">Transaction</p>
+                        <p className="font-mono text-blue-600 text-xs">
+                          {formatTxHash(agent.result._meta["x402/payment-response"].transaction)}
+                        </p>
+                      </div>
+                      <Link 
+                        href={`https://amoy.polygonscan.com/tx/${agent.result._meta["x402/payment-response"].transaction}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium rounded transition-all duration-200 hover:scale-105"
+                      >
+                        View
+                        <ExternalLinkIcon />
+                      </Link>
+                    </div>
+                  </div>
+                )}
+
+                {/* Agent Response */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h5 className="text-md font-semibold text-slate-700">Response:</h5>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleCopy(agentText, agent.agentAddress)}
+                        className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-200 ${
+                          hasCopySuccess 
+                            ? 'bg-green-100 text-green-700 border border-green-300'
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-300 hover:scale-105'
+                        }`}
+                      >
+                        <CopyIcon />
+                        {hasCopySuccess ? 'Copied!' : 'Copy'}
+                      </button>
+                      {shouldShowExpandButton(agentText) && (
+                        <button
+                          onClick={() => toggleAgentExpansion(agent.agentAddress)}
+                          className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium rounded-lg border border-slate-300 transition-all duration-200 hover:scale-105"
+                        >
+                          {isExpanded ? <CollapseIcon /> : <ExpandIcon />}
+                          {isExpanded ? 'Show Less' : 'Show More'}
+                        </button>
                       )}
                     </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+                  </div>
 
-      {/* Combined Results Section */}
-      {combinedResults && (
-        <div className="bg-white/60 backdrop-blur-sm rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-6 py-4 border-b border-slate-200">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-slate-800">Combined Results</h3>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleCopy}
-                  className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-200 ${
-                    copySuccess 
-                      ? 'bg-green-100 text-green-700 border border-green-300'
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-300 hover:scale-105'
-                  }`}
-                >
-                  <CopyIcon />
-                  {copySuccess ? 'Copied!' : 'Copy'}
-                </button>
-                {shouldShowExpandButton && (
-                  <button
-                    onClick={() => setIsExpanded(!isExpanded)}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium rounded-lg border border-slate-300 transition-all duration-200 hover:scale-105"
-                  >
-                    {isExpanded ? <CollapseIcon /> : <ExpandIcon />}
-                    {isExpanded ? 'Show Less' : 'Show More'}
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="p-6">
-            <div className="prose prose-slate max-w-none">
-              <div 
-                className={`text-slate-700 leading-relaxed whitespace-pre-wrap transition-all duration-300 ${
-                  isExpanded ? 'max-h-none' : ''
-                }`}
-              >
-                {displayText}
-              </div>
-            </div>
-
-            {/* Execution Summary */}
-            <div className="mt-6 pt-6 border-t border-slate-200">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200">
-                  <p className="text-2xl font-black text-purple-700">{output.executionSummary.totalAgents}</p>
-                  <p className="text-sm text-purple-600 font-medium">Total Agents</p>
-                </div>
-                <div className={`text-center p-4 rounded-lg border ${
-                  isPartialFailure 
-                    ? 'bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200' 
-                    : 'bg-gradient-to-br from-green-50 to-emerald-100 border-green-200'
-                }`}>
-                  <p className={`text-2xl font-black ${
-                    isPartialFailure ? 'text-yellow-700' : 'text-green-700'
-                  }`}>
-                    {successRate}%
-                  </p>
-                  <p className={`text-sm font-medium ${
-                    isPartialFailure ? 'text-yellow-600' : 'text-green-600'
-                  }`}>
-                    Success Rate
-                  </p>
-                </div>
-                <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
-                  <p className="text-2xl font-black text-blue-700">
-                    {getEstimatedTime()}
-                  </p>
-                  <p className="text-sm text-blue-600 font-medium">Execution Time</p>
-                </div>
-                <div className="text-center p-4 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg border border-indigo-200">
-                  <p className="text-2xl font-black text-indigo-700">
-                    {output.executionSummary.totalCost.toFixed(4)}
-                  </p>
-                  <p className="text-sm text-indigo-600 font-medium">Total Cost (ETH)</p>
+                  <div className="prose prose-slate max-w-none">
+                    <div 
+                      className="text-slate-700 leading-relaxed whitespace-pre-wrap transition-all duration-300 bg-gray-50 p-4 rounded-lg border border-gray-200 max-h-46 overflow-y-auto"
+                    >
+                      {displayText}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          );
+        })}
+      </div>
 
       {/* Action Buttons */}
       <div className="flex gap-4 justify-center">
-        <button
+        <Button
           onClick={() => window.location.reload()}
-          className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-lg shadow-lg hover:shadow-purple-200/80 transform transition-all duration-200 hover:scale-105"
+          className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-lg shadow-lg hover:shadow-purple-200/80 transform transition-all duration-200"
         >
           Start New Workflow
-        </button>
-        <button
-          onClick={handleCopy}
-          className="px-6 py-3 bg-white text-slate-700 font-bold rounded-lg shadow-sm border border-slate-300 hover:bg-slate-50 transition-all duration-200 hover:scale-105"
+        </Button>
+        <Button
+          onClick={() => {
+            const allResults = output.results.map(agent => 
+              `=== ${formatAgentName(agent.agentName)} ===\n${agent.result.content?.[0]?.text || ''}\n\n`
+            ).join('');
+            navigator.clipboard.writeText(allResults);
+          }}
+          className="px-6 py-3 bg-white text-slate-700 font-bold rounded-lg shadow-sm border border-slate-300 hover:bg-slate-50 transition-all duration-200 "
         >
-          Copy Results
-        </button>
+          Copy All Results
+        </Button>
       </div>
 
       <style jsx>{`
