@@ -1,4 +1,5 @@
 "use client";
+
 import { use, useEffect, useState } from "react";
 import { useAccount, useSendTransaction, useWaitForTransactionReceipt, WagmiConfig } from "wagmi";
 import FinalOutput from "./final_output";
@@ -10,12 +11,13 @@ import { useRouter } from "next/navigation";
 import { erc20Abi, parseEther, parseUnits } from "viem";
 import { toast } from "sonner";
 import {
-    writeContract,
-    readContract,
-    simulateContract,
-    waitForTransactionReceipt,
+  writeContract,
+  readContract,
+  simulateContract,
+  waitForTransactionReceipt,
 } from '@wagmi/core';
 import { config } from "@/config";
+import LoadingComponent from "./loading_text";
 
 const HeroSection = () => {
   const router = useRouter();
@@ -24,6 +26,8 @@ const HeroSection = () => {
   const [prompt, setPrompt] = useState("");
   const productName = "DIRECTOR.AI";
   const [promptExecuted, setPromptExecuted] = useState(false);
+  // State to manage the loading state
+  const [loadingState, setLoadingState] = useState<'plan' | 'execute' | null>(null);
 
   const getErrorMessage = async (response: Response): Promise<string> => {
     try {
@@ -35,14 +39,11 @@ const HeroSection = () => {
   };
 
   const [isLoading, setIsLoading] = useState(false);
-  const [finalOutputData, setFinalOutputData] = useState<
-    IOutput[] | undefined
-  >(undefined);
-
+  const [finalOutputData, setFinalOutputData] = useState<IOutput[] | undefined>(undefined);
   const [plan, setPlan] = useState<IPlan[] | undefined>(undefined);
   const [txHash, setTxHash] = useState<string | undefined>(undefined);
-  const [planResponse,setPlanResponse] = useState<any>(undefined);
-  const [executeResponse,setExecuteResponse] = useState<any>(undefined);
+  const [planResponse, setPlanResponse] = useState<any>(undefined);
+  const [executeResponse, setExecuteResponse] = useState<any>(undefined);
 
   const totalAmount = plan?.reduce((acc, plan) => acc + plan.cost, 0);
 
@@ -65,7 +66,6 @@ const HeroSection = () => {
       hash,
     })
 
-
   useEffect(() => {
     if (!isConnected) {
       router.push("/");
@@ -81,15 +81,16 @@ const HeroSection = () => {
       } else {
         clearInterval(typingInterval);
       }
-    }, 100); // Slightly slower for smoother typing
+    }, 100);
 
     return () => clearInterval(typingInterval);
   }, []);
 
   const handleSendPrompt = async () => {
     if (prompt.trim()) {
-      setPromptExecuted(true); // Trigger the UI transition
+      setPromptExecuted(true);
       setIsLoading(true);
+      setLoadingState('plan');
       try {
         const response = await fetch(
           "https://director-ai-production.up.railway.app/api/jobs/quote",
@@ -115,15 +116,16 @@ const HeroSection = () => {
         } else {
           const errorMessage = data.message || data.error || "Failed to get a valid plan from the server.";
           toast(errorMessage);
-          setPromptExecuted(false); // Reset UI on failure
+          setPromptExecuted(false);
         }
       } catch (err) {
         console.error(err);
         const errorMessage = err instanceof Error ? err.message : "An error occurred while processing your request. Please try again.";
         toast(errorMessage);
-        setPromptExecuted(false); // Reset UI on error
+        setPromptExecuted(false);
       } finally {
         setIsLoading(false);
+        setLoadingState(null);
       }
     }
   };
@@ -131,79 +133,75 @@ const HeroSection = () => {
   const onAccept = async () => {
     try {
       setIsLoading(true);
+      setLoadingState('execute');
       if (totalAmount === undefined || totalAmount === 0) {
         toast("Invalid total amount for transaction.");
         setIsLoading(false);
+        setLoadingState(null);
         return;
       }
       if (!plan || plan.length === 0) {
         toast("No execution plan available.");
         setIsLoading(false);
+        setLoadingState(null);
         return;
       }
       if(process.env.NEXT_PUBLIC_SERVER_ADDRESS === undefined) {
         toast("Server address is not defined.");
         setIsLoading(false);
+        setLoadingState(null);
         return;
       }
       if (!isConnected) {
         toast("Wallet not connected.");
         setIsLoading(false);
+        setLoadingState(null);
         return;
       }
       const to = process.env.NEXT_PUBLIC_SERVER_ADDRESS as `0x${string}`;
 
-      // const { result, request } = await simulateContract(config, {
-      //           address: `0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582` as `0x${string}`,
-      //           abi: erc20Abi,
-      //           functionName: 'transfer',
-      //           args: [
-      //             to,
-      //             parseUnits(totalAmount.toString(),6)
-      //           ],
-      //       });
-            const hash = await writeContract(config,  {
-                address: `0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582` as `0x${string}`,
-                abi: erc20Abi,
-                functionName: 'transfer',
-                args: [
-                  to,
-                  parseUnits(totalAmount.toString(),6)
-                ],
-            });
-            await waitForTransactionReceipt(config, {
-                hash: hash,
-            });
+      const hash = await writeContract(config, {
+        address: `0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582` as `0x${string}`,
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [
+          to,
+          parseUnits(totalAmount.toString(),6)
+        ],
+      });
+      await waitForTransactionReceipt(config, {
+        hash: hash,
+      });
 
       const response = await fetch(
-          "https://director-ai-production.up.railway.app/api/jobs/execute",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ 
-              jobId:planResponse.jobId,
-              agentSequence:planResponse.agentSequence,
-              transferHash: hash,
-            }),
-          }
-        );
-
-        if (!response.ok) {
-          const errorMessage = await getErrorMessage(response);
-          throw new Error(errorMessage);
+        "https://director-ai-production.up.railway.app/api/jobs/execute",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            jobId:planResponse.jobId,
+            agentSequence:planResponse.agentSequence,
+            transferHash: hash,
+          }),
         }
-        const data = await response.json();
+      );
 
-        if (!data.success) {
-          const errorMessage = data.message || data.error || "Execution failed";
-          toast(errorMessage);
-          return;
-        }
+      if (!response.ok) {
+        const errorMessage = await getErrorMessage(response);
+        throw new Error(errorMessage);
+      }
+      const data = await response.json();
 
-        setExecuteResponse(data);
-        console.log(data);
+      if (!data.success) {
+        const errorMessage = data.message || data.error || "Execution failed";
+        toast(errorMessage);
+        return;
+      }
+
+      setExecuteResponse(data);
+      console.log(data);
     } catch (err) {
       console.error(err);
       let errorMessage = "An error occurred while processing your request";
@@ -217,6 +215,7 @@ const HeroSection = () => {
       toast(errorMessage);
     } finally {
       setIsLoading(false);
+      setLoadingState(null);
     }
   };
 
@@ -227,6 +226,7 @@ const HeroSection = () => {
   const resetState = () => {
     setPromptExecuted(false);
     setIsLoading(false);
+    setLoadingState(null);
     setPlan(undefined);
     setFinalOutputData(undefined);
     setPrompt("");
@@ -317,39 +317,8 @@ const HeroSection = () => {
             </div>
 
             {/* Loading State */}
-            {isLoading && (
-              <div
-                className="space-y-6 animate-fade-in-up"
-                style={{
-                  animation: 'fadeInUp 0.6s ease-out forwards',
-                }}
-              >
-                <div className="text-center">
-                  <div className="inline-flex items-center gap-2 text-purple-600 font-medium">
-                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-purple-600 border-t-transparent"></div>
-                    Generating execution plan...
-                  </div>
-                </div>
-                <div className="space-y-4 pt-4">
-                  {[0, 1, 2].map((index) => (
-                    <div
-                      key={index}
-                      className="animate-pulse"
-                      style={{
-                        animationDelay: `${index * 150}ms`,
-                        animationDuration: '1.5s',
-                      }}
-                    >
-                      {index === 0 ? (
-                        <div className="h-24 bg-gradient-to-r from-slate-100 via-slate-200 to-slate-100 bg-size-200 bg-pos-0 animate-shimmer rounded-xl"></div>
-                      ) : (
-                        <div className={`h-4 bg-gradient-to-r from-slate-100 via-slate-200 to-slate-100 bg-size-200 bg-pos-0 animate-shimmer rounded-full ${index === 1 ? 'w-3/4' : index === 2 ? 'w-full' : 'w-5/6'
-                          }`}></div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
+            {isLoading && loadingState && (
+              <LoadingComponent loadingState={loadingState} />
             )}
 
             {/* Plan Display State */}
