@@ -237,6 +237,9 @@ const HeroSection = () => {
       className={`min-h-screen w-full bg-gradient-to-br from-slate-50 to-blue-50/30 flex flex-col relative overflow-hidden transition-all duration-700 ease-out ${promptExecuted ? "justify-start pt-16" : "justify-center pt-0"
         }`}
     >
+      <div className="absolute top-4 right-4 z-20">
+        <w3m-account-button />
+      </div>
       <div className="relative z-10 w-full max-w-4xl mx-auto px-4 py-8">
         <div className="p-0 md:p-4">
           {/* Animated Header Section */}
