@@ -262,9 +262,14 @@ export class GitHubAgent extends BaseAgent {
 
       const processingTime = Date.now() - startTime;
 
+      let githubURL = "";
+      if (repo_url) {
+        githubURL = `https://github.com/${repo_url}`;
+      }
+
       return {
         success: true,
-        data: "Action completed check on github",
+        data: githubURL,
         metadata: {
           requestId: context.requestId,
           agentId: this.getId(),
