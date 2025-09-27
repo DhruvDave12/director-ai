@@ -64,6 +64,13 @@ const agents = [
     address: "0x44D44273687060902990E6015D64632180529626",
     costPerOutputToken: 0.000001, // $0.000001 per output token
   },
+  {
+    id: uuidv4(),
+    name: "image_generation_agent",
+    description: "Specialises in generating images from text prompts",
+    address: "0x93b0963E157359E77381270361692589062b162D",
+    costPerOutputToken: 0.000001, // $0.000001 per output token
+  },
 ];
 
 async function setupAgents() {
