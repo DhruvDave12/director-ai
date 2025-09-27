@@ -14,3 +14,13 @@ export {
   RedditSentimentAgent,
   createRedditSentimentAgent,
 } from "./reddit-sentiment-agent.js";
+
+export {
+  ContentAnalysisAgent,
+  createContentAnalysisAgent,
+} from "./content-analysis-agent.js";
+
+export {
+  FarcasterSentimentAgent,
+  createFarcasterSentimentAgent,
+} from "./farcaster-sentiment-agent.js";
