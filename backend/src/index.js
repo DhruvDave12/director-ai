@@ -123,6 +123,16 @@ jobsRouter.post("/execute", async (req, res) => {
 // Mount jobs router
 app.use("/api/jobs", jobsRouter);
 
+const agentsRouter = express.Router();
+
+agentsRouter.get("/", async (req, res) => {
+  const agents = await agentOrderer.getAllAgents();
+  res.json(agents);
+});
+
+app.use("/api/agents", agentsRouter);
+
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
