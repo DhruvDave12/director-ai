@@ -43,114 +43,6 @@ class AgentExecutorService {
         }
     }
 
-    /**
-     * Generate dummy response based on agent type
-     * @param {Object} agentItem - Single agent from agentSequence
-     * @returns {Object} Dummy response object
-     */
-    generateDummyResponse(agentItem) {
-        const { agentName, agentPrompt, agentAddress, cost } = agentItem;
-
-        const baseResponse = {
-            agentAddress,
-            agentName,
-            executionCost: cost,
-            timestamp: new Date().toISOString(),
-            status: "completed",
-            inputPrompt: agentPrompt
-        };
-
-        // Generate different dummy responses based on agent type
-        switch (agentName) {
-            case "web_scraper_agent":
-                return {
-                    ...baseResponse,
-                    result: {
-                        type: "web_scraping",
-                        data: {
-                            url: "https://example.com",
-                            title: "Example Website",
-                            content: "Scraped content from the website...",
-                            metadata: {
-                                scrapedAt: new Date().toISOString(),
-                                contentLength: 1250,
-                                links: ["https://example.com/page1", "https://example.com/page2"]
-                            }
-                        }
-                    }
-                };
-
-            case "data_analyzer_agent":
-                return {
-                    ...baseResponse,
-                    result: {
-                        type: "data_analysis",
-                        data: {
-                            insights: [
-                                "Key trend identified in the data",
-                                "Statistical significance found in metrics",
-                                "Anomaly detected in recent patterns"
-                            ],
-                            metrics: {
-                                totalRecords: 1500,
-                                accuracy: 0.94,
-                                confidence: 0.87
-                            },
-                            summary: "Analysis completed successfully with high confidence"
-                        }
-                    }
-                };
-
-            case "seo_optimization_agent":
-                return {
-                    ...baseResponse,
-                    result: {
-                        type: "seo_optimization",
-                        data: {
-                            recommendations: [
-                                "Optimize meta descriptions for better CTR",
-                                "Improve page loading speed",
-                                "Add structured data markup"
-                            ],
-                            seoScore: 78,
-                            improvements: {
-                                titleTags: "optimized",
-                                headings: "improved",
-                                keywords: "enhanced"
-                            }
-                        }
-                    }
-                };
-
-            case "github_code_agent":
-                return {
-                    ...baseResponse,
-                    result: {
-                        type: "code_generation",
-                        data: {
-                            repository: "example/project",
-                            pullRequest: "https://github.com/example/project/pull/123",
-                            filesModified: ["src/components/Button.tsx", "src/utils/helpers.js"],
-                            linesAdded: 45,
-                            linesRemoved: 12,
-                            status: "PR created successfully"
-                        }
-                    }
-                };
-
-            default:
-                return {
-                    ...baseResponse,
-                    result: {
-                        type: "generic",
-                        data: {
-                            message: "Agent executed successfully",
-                            output: "Generic agent response"
-                        }
-                    }
-                };
-        }
-    }
 
     /**
      * Execute a single agent from the agentSequence
@@ -205,7 +97,7 @@ class AgentExecutorService {
             const agent = agentSequence[i];
             console.log(`\n📍 Executing agent ${i + 1}/${agentSequence.length}`);
 
-            const result = await this.executeAgent(agent);
+            const result = await this.executeAgentWithMCP(agent);
             results.push(result);
 
             // Add small delay between agents to simulate real execution
@@ -231,7 +123,7 @@ class AgentExecutorService {
 
         try {
             // Convert agent address to tool name format
-            const toolName = `agent_${agentItem.agentAddress.toLowerCase()}`;
+            const toolName = `${agentItem.agentName.toLowerCase()}`;
 
             const response = await this.client.callTool({
                 name: toolName,
